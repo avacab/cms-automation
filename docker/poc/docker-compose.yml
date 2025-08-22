@@ -1,0 +1,326 @@
+version: '3.8'
+
+services:
+  # Reverse Proxy & Load Balancer
+  nginx:
+    image: nginx:alpine
+    container_name: cms_nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ../../nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ../../nginx/sites-available:/etc/nginx/sites-available:ro
+      - ../../ssl:/etc/ssl/certs:ro
+      - cms_uploads:/var/www/uploads:ro
+    depends_on:
+      - cms-api
+      - admin-api
+      - frontend
+      - admin-panel
+    restart: unless-stopped
+    networks:
+      - cms_network
+
+  # Frontend Application
+  frontend:
+    build:
+      context: ../../frontend
+      dockerfile: Dockerfile
+      target: production
+    container_name: cms_frontend
+    expose:
+      - "3000"
+    environment:
+      - NODE_ENV=production
+      - REACT_APP_API_URL=http://nginx/api
+      - REACT_APP_ADMIN_URL=http://nginx/admin
+    restart: unless-stopped
+    networks:
+      - cms_network
+
+  # Admin Panel
+  admin-panel:
+    build:
+      context: ../../frontend
+      dockerfile: Dockerfile.admin
+      target: production
+    container_name: cms_admin_panel
+    expose:
+      - "3001"
+    environment:
+      - NODE_ENV=production
+      - REACT_APP_API_URL=http://nginx/api/admin
+    restart: unless-stopped
+    networks:
+      - cms_network
+
+  # CMS Content API
+  cms-api:
+    build:
+      context: ../../backend/api
+      dockerfile: Dockerfile
+    container_name: cms_content_api
+    expose:
+      - "5000"
+    environment:
+      - NODE_ENV=production
+      - PORT=5000
+      - DATABASE_URL=postgresql://cms_user:cms_secure_password@postgres:5432/cms_db
+      - REDIS_URL=redis://redis:6379/0
+      - JWT_SECRET=${JWT_SECRET:-your-super-secure-jwt-secret-change-in-production}
+      - JWT_EXPIRY=24h
+      - FILE_STORAGE_PATH=/app/uploads
+      - CORS_ORIGIN=http://localhost
+      - API_RATE_LIMIT=1000
+    volumes:
+      - cms_uploads:/app/uploads
+      - ../../config/production/api.config.js:/app/config/production.js:ro
+    depends_on:
+      - postgres
+      - redis
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+        reservations:
+          memory: 1G
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - cms_network
+
+  # Admin API
+  admin-api:
+    build:
+      context: ../../backend/admin
+      dockerfile: Dockerfile
+    container_name: cms_admin_api
+    expose:
+      - "5001"
+    environment:
+      - NODE_ENV=production
+      - PORT=5001
+      - DATABASE_URL=postgresql://cms_user:cms_secure_password@postgres:5432/cms_db
+      - REDIS_URL=redis://redis:6379/1
+      - JWT_SECRET=${JWT_SECRET:-your-super-secure-jwt-secret-change-in-production}
+      - JWT_EXPIRY=8h
+      - ADMIN_SESSION_TIMEOUT=3600
+    volumes:
+      - ../../config/production/admin.config.js:/app/config/production.js:ro
+    depends_on:
+      - postgres
+      - redis
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+        reservations:
+          memory: 512M
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - cms_network
+
+  # Experience Orchestrator
+  orchestrator:
+    build:
+      context: ../../backend/orchestrator
+      dockerfile: Dockerfile
+    container_name: cms_orchestrator
+    expose:
+      - "5002"
+    environment:
+      - NODE_ENV=production
+      - PORT=5002
+      - CMS_API_URL=http://cms-api:5000
+      - REDIS_URL=redis://redis:6379/2
+      - PERSONALIZATION_ENGINE=enabled
+      - AI_CONTENT_OPTIMIZATION=enabled
+    depends_on:
+      - cms-api
+      - redis
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+        reservations:
+          memory: 512M
+    networks:
+      - cms_network
+
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: cms_postgres
+    environment:
+      - POSTGRES_DB=cms_db
+      - POSTGRES_USER=cms_user
+      - POSTGRES_PASSWORD=cms_secure_password
+      - POSTGRES_INITDB_ARGS=--auth-host=md5
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ../../scripts/init-db.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
+      - ../../scripts/seed-data.sql:/docker-entrypoint-initdb.d/02-seed.sql:ro
+    expose:
+      - "5432"
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+        reservations:
+          memory: 2G
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U cms_user -d cms_db"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - cms_network
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: cms_redis
+    command: >
+      redis-server 
+      --appendonly yes 
+      --maxmemory 1gb 
+      --maxmemory-policy allkeys-lru
+      --save 900 1
+      --save 300 10
+      --save 60 10000
+    volumes:
+      - redis_data:/data
+      - ../../config/production/redis.conf:/usr/local/etc/redis/redis.conf:ro
+    expose:
+      - "6379"
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+        reservations:
+          memory: 1G
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - cms_network
+
+  # Search Engine (Apache Solr)
+  search:
+    image: solr:9-slim
+    container_name: cms_search
+    environment:
+      - SOLR_HEAP=1g
+      - SOLR_JAVA_MEM=-Xms512m -Xmx1g
+    volumes:
+      - search_data:/var/solr
+      - ../../config/solr:/opt/solr/server/solr/configsets/cms_config:ro
+    expose:
+      - "8983"
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 1.5G
+        reservations:
+          memory: 1G
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8983/solr/admin/ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - cms_network
+
+  # File Server (Static Assets)
+  file-server:
+    image: nginx:alpine
+    container_name: cms_file_server
+    volumes:
+      - cms_uploads:/usr/share/nginx/html/uploads:ro
+      - ../../nginx/file-server.conf:/etc/nginx/nginx.conf:ro
+    expose:
+      - "80"
+    restart: unless-stopped
+    networks:
+      - cms_network
+
+  # System Monitoring
+  netdata:
+    image: netdata/netdata:latest
+    container_name: cms_monitoring
+    ports:
+      - "19999:19999"
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    cap_add:
+      - SYS_PTRACE
+    security_opt:
+      - apparmor:unconfined
+    environment:
+      - NETDATA_CLAIM_TOKEN=${NETDATA_CLAIM_TOKEN:-}
+      - NETDATA_CLAIM_URL=${NETDATA_CLAIM_URL:-https://app.netdata.cloud}
+    restart: unless-stopped
+    networks:
+      - cms_network
+
+  # Background Job Processor
+  job-processor:
+    build:
+      context: ../../backend/api
+      dockerfile: Dockerfile
+    container_name: cms_job_processor
+    command: ["node", "workers/job-processor.js"]
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://cms_user:cms_secure_password@postgres:5432/cms_db
+      - REDIS_URL=redis://redis:6379/3
+      - WORKER_CONCURRENCY=5
+    depends_on:
+      - postgres
+      - redis
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 256M
+    networks:
+      - cms_network
+
+# Volumes
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  search_data:
+    driver: local
+  cms_uploads:
+    driver: local
+
+# Networks
+networks:
+  cms_network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
