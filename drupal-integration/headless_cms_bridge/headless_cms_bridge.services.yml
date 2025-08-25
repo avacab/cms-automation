@@ -1,0 +1,46 @@
+services:
+  headless_cms_bridge.api_client:
+    class: Drupal\headless_cms_bridge\Service\ApiClientService
+    arguments: ['@config.factory', '@http_client', '@logger.factory']
+    tags:
+      - { name: service }
+
+  headless_cms_bridge.content_sync:
+    class: Drupal\headless_cms_bridge\Service\ContentSyncService
+    arguments: ['@headless_cms_bridge.api_client', '@entity_type.manager', '@logger.factory', '@config.factory']
+    tags:
+      - { name: service }
+
+  headless_cms_bridge.webhook_manager:
+    class: Drupal\headless_cms_bridge\Service\WebhookManagerService
+    arguments: ['@headless_cms_bridge.api_client', '@logger.factory', '@config.factory']
+    tags:
+      - { name: service }
+
+  headless_cms_bridge.data_transformer:
+    class: Drupal\headless_cms_bridge\Service\DataTransformerService
+    arguments: ['@entity_type.manager', '@field.manager', '@config.factory']
+    tags:
+      - { name: service }
+
+  headless_cms_bridge.queue_processor:
+    class: Drupal\headless_cms_bridge\Service\QueueProcessorService
+    arguments: ['@queue', '@headless_cms_bridge.content_sync', '@logger.factory']
+    tags:
+      - { name: service }
+
+  headless_cms_bridge.content_subscriber:
+    class: Drupal\headless_cms_bridge\EventSubscriber\ContentEventSubscriber
+    arguments: ['@headless_cms_bridge.content_sync', '@headless_cms_bridge.queue_processor', '@config.factory', '@logger.factory']
+    tags:
+      - { name: event_subscriber }
+
+  headless_cms_bridge.user_subscriber:
+    class: Drupal\headless_cms_bridge\EventSubscriber\UserEventSubscriber  
+    arguments: ['@headless_cms_bridge.content_sync', '@config.factory', '@logger.factory']
+    tags:
+      - { name: event_subscriber }
+
+  headless_cms_bridge.logger:
+    parent: logger.channel_base
+    arguments: ['headless_cms_bridge']

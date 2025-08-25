@@ -1,0 +1,47 @@
+headless_cms_bridge.admin_form:
+  path: '/admin/config/services/headless-cms-bridge'
+  defaults:
+    _form: '\Drupal\headless_cms_bridge\Form\AdminConfigForm'
+    _title: 'Headless CMS Bridge Configuration'
+  requirements:
+    _permission: 'administer headless cms bridge'
+
+headless_cms_bridge.webhook:
+  path: '/headless-cms-bridge/webhook/{event}'
+  defaults:
+    _controller: '\Drupal\headless_cms_bridge\Controller\WebhookController::handleWebhook'
+  methods: [POST]
+  requirements:
+    _access: 'TRUE'
+
+headless_cms_bridge.status:
+  path: '/headless-cms-bridge/status'
+  defaults:
+    _controller: '\Drupal\headless_cms_bridge\Controller\StatusController::getStatus'
+  methods: [GET]
+  requirements:
+    _access: 'TRUE'
+
+headless_cms_bridge.sync_test:
+  path: '/admin/config/services/headless-cms-bridge/test'
+  defaults:
+    _controller: '\Drupal\headless_cms_bridge\Controller\AdminController::testConnection'
+    _title: 'Test CMS Connection'
+  requirements:
+    _permission: 'administer headless cms bridge'
+
+headless_cms_bridge.manual_sync:
+  path: '/admin/config/services/headless-cms-bridge/sync/{entity_type}'
+  defaults:
+    _controller: '\Drupal\headless_cms_bridge\Controller\AdminController::manualSync'
+    entity_type: 'node'
+  requirements:
+    _permission: 'administer headless cms bridge'
+
+headless_cms_bridge.sync_logs:
+  path: '/admin/config/services/headless-cms-bridge/logs'
+  defaults:
+    _controller: '\Drupal\headless_cms_bridge\Controller\AdminController::viewLogs'
+    _title: 'Sync Logs'
+  requirements:
+    _permission: 'administer headless cms bridge'

@@ -1,0 +1,17 @@
+name: 'Headless CMS Bridge'
+type: module
+description: 'Provides bidirectional synchronization between Drupal and headless CMS systems'
+package: 'Integration'
+version: '1.0.0'
+core_version_requirement: ^10 || ^11
+
+dependencies:
+  - drupal:system (>=10.0.0)
+  - drupal:user (>=10.0.0)
+  - drupal:node (>=10.0.0)
+  - drupal:field (>=10.0.0)
+  - drupal:rest (>=10.0.0)
+  - drupal:serialization (>=10.0.0)
+  - drupal:hal (>=10.0.0)
+
+configure: headless_cms_bridge.admin_form

@@ -1,0 +1,12 @@
+administer headless cms bridge:
+  title: 'Administer Headless CMS Bridge'
+  description: 'Configure and manage the Headless CMS Bridge integration'
+  restrict access: TRUE
+
+view headless cms bridge logs:
+  title: 'View Headless CMS Bridge Logs'
+  description: 'View synchronization logs and status information'
+
+access headless cms bridge webhooks:
+  title: 'Access Headless CMS Bridge Webhooks'
+  description: 'Allow access to webhook endpoints for external systems'

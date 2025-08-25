@@ -1,0 +1,99 @@
+{
+  "summary": {
+    "total_tests": 14,
+    "passed": 7,
+    "failed": 7,
+    "success_rate": 50,
+    "timestamp": "2025-08-23T13:09:27.998Z"
+  },
+  "results": [
+    {
+      "name": "CMS to WordPress transformation",
+      "status": "FAIL",
+      "message": "CMS to WordPress transformation failed: Assignment to constant variable.",
+      "timestamp": "2025-08-23T13:09:27.988Z"
+    },
+    {
+      "name": "WordPress to CMS transformation",
+      "status": "FAIL",
+      "message": "Title transformation failed",
+      "timestamp": "2025-08-23T13:09:27.988Z"
+    },
+    {
+      "name": "Batch transformation",
+      "status": "FAIL",
+      "message": "Batch transformation failed",
+      "timestamp": "2025-08-23T13:09:27.988Z"
+    },
+    {
+      "name": "Webhook signature generation",
+      "status": "PASS",
+      "message": "Webhook signatures generated correctly",
+      "timestamp": "2025-08-23T13:09:27.990Z"
+    },
+    {
+      "name": "Webhook queue management",
+      "status": "PASS",
+      "message": "Webhook queue management working correctly",
+      "timestamp": "2025-08-23T13:09:27.990Z"
+    },
+    {
+      "name": "API key generation",
+      "status": "PASS",
+      "message": "API key generated successfully",
+      "timestamp": "2025-08-23T13:09:27.991Z"
+    },
+    {
+      "name": "API key validation",
+      "status": "FAIL",
+      "message": "Valid API key rejected",
+      "timestamp": "2025-08-23T13:09:27.992Z"
+    },
+    {
+      "name": "JWT token handling",
+      "status": "PASS",
+      "message": "JWT tokens working correctly",
+      "timestamp": "2025-08-23T13:09:27.995Z"
+    },
+    {
+      "name": "Webhook signature verification",
+      "status": "FAIL",
+      "message": "Input buffers must have the same byte length",
+      "timestamp": "2025-08-23T13:09:27.995Z"
+    },
+    {
+      "name": "WordPress adapter configuration",
+      "status": "PASS",
+      "message": "WordPress adapter configured correctly",
+      "timestamp": "2025-08-23T13:09:27.996Z"
+    },
+    {
+      "name": "WordPress adapter transformations",
+      "status": "PASS",
+      "message": "Content transformations working correctly",
+      "timestamp": "2025-08-23T13:09:27.996Z"
+    },
+    {
+      "name": "Sync queue functionality",
+      "status": "PASS",
+      "message": "Sync queue functioning correctly",
+      "timestamp": "2025-08-23T13:09:27.997Z"
+    },
+    {
+      "name": "Complete integration workflow",
+      "status": "FAIL",
+      "message": "CMS to WordPress transformation failed: Assignment to constant variable.",
+      "timestamp": "2025-08-23T13:09:27.997Z"
+    },
+    {
+      "name": "Error handling workflow",
+      "status": "FAIL",
+      "message": "Incorrect error handling",
+      "timestamp": "2025-08-23T13:09:27.997Z"
+    }
+  ],
+  "recommendations": [
+    "Review failed tests before deployment",
+    "Check content transformation logic"
+  ]
+}

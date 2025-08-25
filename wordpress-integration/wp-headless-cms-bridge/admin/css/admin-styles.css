@@ -1,0 +1,333 @@
+/**
+ * Admin Styles for WP Headless CMS Bridge
+ *
+ * @package WP_Headless_CMS_Bridge
+ * @since   1.0.0
+ */
+
+/* Main admin page styling */
+.wrap .nav-tab-wrapper {
+    margin-bottom: 20px;
+}
+
+.tab-content {
+    background: #fff;
+    padding: 20px;
+    border: 1px solid #c3c4c7;
+    border-radius: 4px;
+}
+
+/* Status cards */
+.status-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+    margin: 20px 0;
+}
+
+.status-card {
+    background: #fff;
+    border: 1px solid #c3c4c7;
+    border-radius: 4px;
+    padding: 20px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.status-card h3 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    font-size: 16px;
+    color: #1d2327;
+}
+
+.status-indicator {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+    font-weight: 600;
+}
+
+.status-indicator .dashicons {
+    margin-right: 8px;
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+}
+
+.status-success {
+    color: #00a32a;
+}
+
+.status-warning {
+    color: #dba617;
+}
+
+.status-error {
+    color: #d63638;
+}
+
+/* Webhook information */
+.webhook-urls {
+    background: #f0f0f1;
+    padding: 15px;
+    border-radius: 4px;
+    margin: 10px 0;
+}
+
+.webhook-urls h4 {
+    margin-top: 0;
+    margin-bottom: 15px;
+}
+
+.webhook-urls code {
+    background: #fff;
+    padding: 5px 8px;
+    border-radius: 3px;
+    font-size: 12px;
+    border: 1px solid #c3c4c7;
+    display: inline-block;
+    margin: 2px 0;
+    word-break: break-all;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.webhook-urls code:hover {
+    background: #f6f7f7;
+}
+
+.webhook-info {
+    margin-top: 10px;
+}
+
+.webhook-info p {
+    margin-bottom: 10px;
+}
+
+.webhook-info code {
+    font-size: 11px;
+    word-break: break-all;
+    max-width: 100%;
+}
+
+/* Connection status */
+#connection-status {
+    margin-top: 10px;
+}
+
+#connection-status .notice {
+    margin: 5px 0;
+}
+
+/* Sync log actions */
+.sync-log-actions {
+    margin: 20px 0;
+    padding: 15px;
+    background: #f0f0f1;
+    border-radius: 4px;
+}
+
+.sync-log-actions .button {
+    margin-right: 10px;
+}
+
+/* Sync logs table */
+.wp-list-table .status-success {
+    color: #00a32a;
+    font-weight: 600;
+}
+
+.wp-list-table .status-error {
+    color: #d63638;
+    font-weight: 600;
+}
+
+/* System info table */
+.system-info {
+    margin-top: 30px;
+}
+
+.system-info table {
+    margin-top: 15px;
+}
+
+.system-info .dashicons {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+    margin-right: 5px;
+}
+
+/* Loading states */
+#loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 99999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.loading-spinner {
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #0073aa;
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Form enhancements */
+.form-table th {
+    font-weight: 600;
+    color: #1d2327;
+}
+
+.form-table input[type="url"],
+.form-table input[type="password"],
+.form-table input[type="number"] {
+    width: 300px;
+}
+
+.form-table select {
+    width: 300px;
+}
+
+.form-table .description {
+    font-style: italic;
+    color: #646970;
+}
+
+/* Settings sections */
+.form-table > tbody > tr > th {
+    padding-left: 0;
+}
+
+h2.title {
+    font-size: 18px;
+    margin: 25px 0 15px 0;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #c3c4c7;
+}
+
+/* Button enhancements */
+.button.button-hero {
+    padding: 8px 16px;
+    font-size: 14px;
+    height: auto;
+}
+
+/* Notices */
+.notice.inline {
+    margin: 5px 0;
+    padding: 8px 12px;
+}
+
+.notice p {
+    margin: 0;
+}
+
+/* Responsive design */
+@media screen and (max-width: 768px) {
+    .status-cards {
+        grid-template-columns: 1fr;
+    }
+    
+    .form-table input[type="url"],
+    .form-table input[type="password"],
+    .form-table input[type="number"],
+    .form-table select {
+        width: 100%;
+        max-width: none;
+    }
+    
+    .sync-log-actions {
+        text-align: center;
+    }
+    
+    .sync-log-actions .button {
+        display: block;
+        margin: 5px 0;
+        width: 100%;
+    }
+}
+
+/* Dark mode compatibility */
+@media (prefers-color-scheme: dark) {
+    .status-card {
+        background: #1d2327;
+        border-color: #3c434a;
+    }
+    
+    .webhook-urls {
+        background: #2c3338;
+    }
+    
+    .webhook-urls code {
+        background: #1d2327;
+        border-color: #3c434a;
+        color: #f0f0f1;
+    }
+    
+    .sync-log-actions {
+        background: #2c3338;
+    }
+}
+
+/* Accessibility improvements */
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+/* Focus styles */
+button:focus,
+input:focus,
+select:focus {
+    outline: 2px solid #0073aa;
+    outline-offset: 2px;
+}
+
+/* Tooltips */
+[data-tooltip] {
+    position: relative;
+    cursor: help;
+}
+
+[data-tooltip]:before {
+    content: attr(data-tooltip);
+    position: absolute;
+    top: -30px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 5px 8px;
+    background: #1d2327;
+    color: #fff;
+    font-size: 12px;
+    border-radius: 3px;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s;
+    z-index: 1000;
+}
+
+[data-tooltip]:hover:before {
+    opacity: 1;
+}

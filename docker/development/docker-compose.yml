@@ -1,0 +1,40 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: cms_dev_postgres
+    environment:
+      - POSTGRES_DB=cms_dev
+      - POSTGRES_USER=cms_dev_user
+      - POSTGRES_PASSWORD=cms_dev_pass
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_dev_data:/var/lib/postgresql/data
+      - ../../scripts/init-db.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    restart: unless-stopped
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: cms_dev_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_dev_data:/data
+    restart: unless-stopped
+
+  # Mail server for development
+  mailhog:
+    image: mailhog/mailhog:latest
+    container_name: cms_dev_mail
+    ports:
+      - "1025:1025"  # SMTP
+      - "8025:8025"  # Web UI
+    restart: unless-stopped
+
+volumes:
+  postgres_dev_data:
+  redis_dev_data:
