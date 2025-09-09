@@ -1,0 +1,65 @@
+version: '3.8'
+
+services:
+  ai-writing-assistant:
+    build:
+      context: ../../backend/ai-writing-assistant
+      dockerfile: Dockerfile.dev
+    ports:
+      - "5002:5002"
+    environment:
+      - NODE_ENV=development
+      - PORT=5002
+      - CORS_ORIGIN=http://localhost:3000
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - OPENAI_MODEL=gpt-3.5-turbo
+      - AI_TEMPERATURE=0.7
+      - AI_MAX_TOKENS=2000
+      - REDIS_URL=redis://redis:6379
+      - LOG_LEVEL=debug
+      - RATE_LIMIT_SUGGESTIONS=100
+      - RATE_LIMIT_GENERATION=50
+    volumes:
+      - ../../backend/ai-writing-assistant:/app
+      - /app/node_modules
+      - ../../logs:/app/logs
+    depends_on:
+      - redis
+    networks:
+      - cms-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5002/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.ai-assistant.rule=PathPrefix(`/api/ai-assistant`)"
+      - "traefik.http.services.ai-assistant.loadbalancer.server.port=5002"
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+      - ../../config/redis/redis.conf:/usr/local/etc/redis/redis.conf:ro
+    command: redis-server /usr/local/etc/redis/redis.conf
+    networks:
+      - cms-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  redis-data:
+    driver: local
+
+networks:
+  cms-network:
+    external: true

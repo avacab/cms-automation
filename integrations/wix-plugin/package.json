@@ -1,0 +1,31 @@
+{
+  "name": "ai-writing-assistant-wix",
+  "version": "1.0.0",
+  "description": "AI Writing Assistant Plugin for Wix Websites",
+  "main": "public/ai-writing-assistant.js",
+  "scripts": {
+    "build": "webpack --mode production",
+    "dev": "webpack --mode development --watch",
+    "test": "jest"
+  },
+  "keywords": [
+    "wix",
+    "ai",
+    "writing",
+    "content",
+    "automation"
+  ],
+  "author": "CMS Automation Platform",
+  "license": "MIT",
+  "devDependencies": {
+    "webpack": "^5.88.0",
+    "webpack-cli": "^5.1.0",
+    "babel-loader": "^9.1.0",
+    "@babel/core": "^7.22.0",
+    "@babel/preset-env": "^7.22.0",
+    "jest": "^29.5.0"
+  },
+  "dependencies": {
+    "axios": "^1.4.0"
+  }
+}

@@ -1,5 +1,15 @@
 import { useState } from 'react'
 import { ContentItem } from '../services/api'
+import AIWritingAssistant from './AIWritingAssistant'
+import AIContentGenerator from './AIContentGenerator'
+import ContentAdaptationPanel from './ContentAdaptationPanel'
+import {
+  SparklesIcon,
+  DocumentTextIcon,
+  ArrowsRightLeftIcon,
+  ChevronDownIcon,
+  ChevronUpIcon
+} from '@heroicons/react/24/outline'
 
 interface ContentFormProps {
   onSubmit: (content: Partial<ContentItem>) => Promise<void>
@@ -16,6 +26,23 @@ export default function ContentForm({ onSubmit, onCancel, initialData, isLoading
     status: initialData?.status || 'draft' as const
   })
   const [errors, setErrors] = useState<Record<string, string>>({})
+  
+  // AI Assistant states
+  const [showAIAssistant, setShowAIAssistant] = useState(false)
+  const [showAIGenerator, setShowAIGenerator] = useState(false)
+  const [showContentAdaptation, setShowContentAdaptation] = useState(false)
+  const [aiSuggestions, setAISuggestions] = useState<any[]>([])
+  
+  // Mock data for AI features (in production, these would come from API)
+  const mockBrandVoices = [
+    { id: 'professional', name: 'Professional Voice', tone: ['professional', 'authoritative'] },
+    { id: 'friendly', name: 'Friendly Voice', tone: ['friendly', 'conversational'] }
+  ]
+  
+  const mockTemplates = [
+    { id: 'blog-post', name: 'Blog Post', type: 'blog-post', description: 'Standard blog post structure' },
+    { id: 'product-desc', name: 'Product Description', type: 'product-description', description: 'E-commerce product description' }
+  ]
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -57,14 +84,97 @@ export default function ContentForm({ onSubmit, onCancel, initialData, isLoading
       slug: !prev.slug || prev.slug === generateSlug(prev.title) ? generateSlug(title) : prev.slug
     }))
   }
+  
+  const handleContentChange = (content: string) => {
+    setFormData(prev => ({ ...prev, content }))
+  }
+  
+  const handleAISuggestionsChange = (suggestions: any[]) => {
+    setAISuggestions(suggestions)
+  }
+  
+  const handleContentGenerated = (content: string) => {
+    setFormData(prev => ({ ...prev, content }))
+    setShowAIGenerator(false)
+  }
 
   return (
-    <div className="bg-white shadow rounded-lg">
-      <div className="px-6 py-4 border-b border-gray-200">
-        <h3 className="text-lg font-medium text-gray-900">
-          {initialData ? 'Edit Content' : 'Create New Content'}
+    <div className="space-y-6">
+      {/* AI Tools Panel */}
+      <div className="bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-200 rounded-lg p-4">
+        <h3 className="text-sm font-medium text-gray-900 mb-3 flex items-center">
+          <SparklesIcon className="w-4 h-4 mr-2 text-purple-600" />
+          AI Writing Tools
         </h3>
+        
+        <div className="flex flex-wrap gap-2">
+          <button
+            onClick={() => setShowAIGenerator(!showAIGenerator)}
+            className={`inline-flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+              showAIGenerator 
+                ? 'bg-purple-600 text-white' 
+                : 'bg-white text-purple-600 hover:bg-purple-50 border border-purple-200'
+            }`}
+            type="button"
+          >
+            <DocumentTextIcon className="w-4 h-4 mr-2" />
+            Content Generator
+            {showAIGenerator ? <ChevronUpIcon className="w-4 h-4 ml-2" /> : <ChevronDownIcon className="w-4 h-4 ml-2" />}
+          </button>
+          
+          <button
+            onClick={() => setShowAIAssistant(!showAIAssistant)}
+            className={`inline-flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+              showAIAssistant 
+                ? 'bg-purple-600 text-white' 
+                : 'bg-white text-purple-600 hover:bg-purple-50 border border-purple-200'
+            }`}
+            type="button"
+          >
+            <SparklesIcon className="w-4 h-4 mr-2" />
+            Writing Assistant
+            {aiSuggestions.length > 0 && (
+              <span className="ml-1 bg-red-500 text-white text-xs rounded-full px-2 py-0.5">
+                {aiSuggestions.length}
+              </span>
+            )}
+            {showAIAssistant ? <ChevronUpIcon className="w-4 h-4 ml-2" /> : <ChevronDownIcon className="w-4 h-4 ml-2" />}
+          </button>
+          
+          <button
+            onClick={() => setShowContentAdaptation(!showContentAdaptation)}
+            className={`inline-flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+              showContentAdaptation 
+                ? 'bg-purple-600 text-white' 
+                : 'bg-white text-purple-600 hover:bg-purple-50 border border-purple-200'
+            }`}
+            type="button"
+            disabled={!formData.content.trim()}
+          >
+            <ArrowsRightLeftIcon className="w-4 h-4 mr-2" />
+            Content Adaptation
+            {showContentAdaptation ? <ChevronUpIcon className="w-4 h-4 ml-2" /> : <ChevronDownIcon className="w-4 h-4 ml-2" />}
+          </button>
+        </div>
       </div>
+
+      {/* AI Content Generator */}
+      {showAIGenerator && (
+        <AIContentGenerator
+          initialContent={formData.content}
+          onContentGenerated={handleContentGenerated}
+          availableTemplates={mockTemplates}
+          availableBrandVoices={mockBrandVoices}
+        />
+      )}
+
+      {/* Main Content Form */}
+      <div className="bg-white shadow rounded-lg">
+        <div className="px-6 py-4 border-b border-gray-200">
+          <h3 className="text-lg font-medium text-gray-900">
+            {initialData ? 'Edit Content' : 'Create New Content'}
+          </h3>
+        </div>
       
       <form onSubmit={handleSubmit} className="px-6 py-4 space-y-4">
         {/* Title Field */}
@@ -129,22 +239,31 @@ export default function ContentForm({ onSubmit, onCancel, initialData, isLoading
           </select>
         </div>
 
-        {/* Content Field */}
+        {/* Content Field with AI Assistant */}
         <div>
           <label htmlFor="content" className="block text-sm font-medium text-gray-700 mb-1">
             Content *
           </label>
-          <textarea
-            id="content"
-            rows={8}
-            value={formData.content}
-            onChange={(e) => setFormData(prev => ({ ...prev, content: e.target.value }))}
-            className={`mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm ${
-              errors.content ? 'border-red-300' : 'border-gray-300'
-            }`}
-            placeholder="Enter your content here..."
-            disabled={isLoading}
-          />
+          <div className="relative">
+            <textarea
+              id="content"
+              rows={12}
+              value={formData.content}
+              onChange={(e) => handleContentChange(e.target.value)}
+              className={`mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm ${
+                errors.content ? 'border-red-300' : 'border-gray-300'
+              }`}
+              placeholder="Enter your content here or use AI tools to generate content..."
+              disabled={isLoading}
+            />
+            {aiSuggestions.length > 0 && (
+              <div className="absolute top-2 right-2">
+                <span className="bg-red-500 text-white text-xs rounded-full px-2 py-1">
+                  {aiSuggestions.length} suggestions
+                </span>
+              </div>
+            )}
+          </div>
           {errors.content && (
             <p className="mt-1 text-sm text-red-600">{errors.content}</p>
           )}
@@ -179,6 +298,27 @@ export default function ContentForm({ onSubmit, onCancel, initialData, isLoading
           </button>
         </div>
       </form>
+      
+      {/* AI Writing Assistant Sidebar */}
+      {showAIAssistant && formData.content && (
+        <div className="border-t pt-4">
+          <AIWritingAssistant
+            content={formData.content}
+            onContentChange={handleContentChange}
+            onSuggestionsChange={handleAISuggestionsChange}
+            brandVoiceId="professional" // This would be selected by the user
+          />
+        </div>
+      )}
     </div>
+
+    {/* Content Adaptation Panel */}
+    {showContentAdaptation && formData.content && (
+      <ContentAdaptationPanel
+        originalContent={formData.content}
+        brandVoiceId="professional" // This would be selected by the user
+      />
+    )}
+  </div>
   )
 }
