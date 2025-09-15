@@ -6,7 +6,6 @@
     "lib": ["ES2022"],
     "allowJs": true,
     "outDir": "./dist",
-    "rootDir": "./src",
     "strict": true,
     "moduleDetection": "force",
     "allowSyntheticDefaultImports": true,
@@ -15,18 +14,19 @@
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "noEmit": false,
-    "declaration": true,
-    "declarationMap": true,
-    "sourceMap": true
+    "noEmit": true,
+    "declaration": false,
+    "declarationMap": false,
+    "sourceMap": false
   },
   "include": [
-    "backend/**/*",
-    "scripts/**/*"
+    "api/**/*"
   ],
   "exclude": [
     "node_modules",
     "dist",
-    "frontend"
+    "frontend",
+    "backend",
+    "scripts"
   ]
 }
