@@ -47,7 +47,7 @@ const LandingPage: React.FC = () => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M19 11H5m14-7l2 7-2 7H5l2-7-2-7h14z" />
               </svg>
               <h3 className="text-2xl font-bold">CMS Ready</h3>
-              <p className="mt-2">Frontend is live and working!</p>
+              <p className="mt-2">Frontend auto-deploys from GitHub! ✨</p>
             </div>
           </div>
         </div>
