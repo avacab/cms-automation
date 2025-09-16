@@ -97,7 +97,7 @@ const AIContentGenerator: React.FC<AIContentGeneratorProps> = ({
         }
       };
 
-      const response = await fetch('http://localhost:5003/api/v1/generate', {
+      const response = await fetch('http://localhost:5000/api/v1/ai/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(requestBody)

@@ -92,7 +92,7 @@ const AIWritingAssistant: React.FC<AIWritingAssistantProps> = ({
   const analyzContent = async (text: string) => {
     setIsAnalyzing(true);
     try {
-      const response = await fetch('http://localhost:5003/api/v1/suggestions', {
+      const response = await fetch('http://localhost:5000/api/v1/ai/suggestions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

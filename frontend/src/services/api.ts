@@ -22,23 +22,35 @@ api.interceptors.response.use(
 
 // Types
 export interface ContentItem {
-  id: number;
+  id: string;
   title: string;
   slug: string;
   content: string;
-  status: 'published' | 'draft';
+  status: 'published' | 'draft' | 'archived';
   created_at: string;
+  updated_at: string;
+  published_at?: string;
+  content_type_id?: string;
+  meta_description?: string;
+  featured_image?: string;
+  tags?: string[];
 }
 
 export interface ContentType {
-  id: number;
+  id: string;
   name: string;
   slug: string;
+  description?: string;
   fields: Array<{
     name: string;
-    type: string;
+    type: 'text' | 'textarea' | 'richtext' | 'number' | 'boolean' | 'date' | 'image' | 'select';
+    label: string;
     required: boolean;
+    options?: string[];
+    validation?: Record<string, any>;
   }>;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface Plugin {
@@ -81,7 +93,7 @@ export const contentService = {
   },
 
   // Get single content item by ID
-  async getContentItem(id: number): Promise<ContentItem> {
+  async getContentItem(id: string): Promise<ContentItem> {
     const response = await api.get<ApiResponse<ContentItem>>(`/api/v1/content/${id}`);
     return response.data.data;
   },
@@ -95,7 +107,7 @@ export const contentService = {
   },
 
   // Update content item
-  async updateContent(id: number, contentData: Partial<ContentItem>): Promise<ContentItem> {
+  async updateContent(id: string, contentData: Partial<ContentItem>): Promise<ContentItem> {
     const response = await api.put<ApiResponse<ContentItem>>(`/api/v1/content/${id}`, {
       content: contentData
     });
@@ -103,7 +115,7 @@ export const contentService = {
   },
 
   // Delete content item
-  async deleteContent(id: number): Promise<{ success: boolean; message: string }> {
+  async deleteContent(id: string): Promise<{ success: boolean; message: string }> {
     const response = await api.delete<ApiResponse<{ success: boolean; message: string }>>(`/api/v1/content/${id}`);
     return response.data.data;
   },
@@ -491,6 +503,62 @@ export const pluginService = {
           retry_attempts: 3,
           timeout: 300000,
           enable_notifications: true
+        }
+      },
+      {
+        id: 'wix-ai-plugin',
+        name: 'Wix AI Writing Assistant',
+        version: '1.0.0',
+        description: 'AI-powered writing assistant plugin for Wix websites. Provides content generation, real-time suggestions, and brand voice consistency directly in Wix Editor.',
+        author: 'CMS Automation Team',
+        status: 'active',
+        type: 'integration',
+        features: [
+          'AI Content Generation',
+          'Real-time Writing Suggestions',
+          'Brand Voice Consistency',
+          'Multi-format Adaptation',
+          'One-click Enhancement',
+          'Batch Processing',
+          'Setup Wizard',
+          'Wix Velo Integration'
+        ],
+        config_url: '/admin/plugins/wix-ai-plugin/config',
+        installed_at: '2025-09-09T10:00:00Z',
+        endpoints: [
+          {
+            method: 'POST',
+            path: '/api/v1/generate',
+            description: 'Generate AI content'
+          },
+          {
+            method: 'POST',
+            path: '/api/v1/suggestions',
+            description: 'Get writing suggestions'
+          },
+          {
+            method: 'POST',
+            path: '/api/v1/adapt',
+            description: 'Adapt content for different formats'
+          },
+          {
+            method: 'GET',
+            path: '/api/v1/adapt/formats',
+            description: 'Get available adaptation formats'
+          }
+        ],
+        dependencies: ['wix-data', 'wix-storage', 'wix-location', 'axios'],
+        settings: {
+          api_base_url: 'http://localhost:5000/api/v1/ai',
+          api_key: '••••••••••••••••',
+          brand_voice_id: '',
+          enable_suggestions: true,
+          enable_generation: true,
+          enable_adaptation: true,
+          rate_limits: {
+            suggestions: 30,
+            generation: 10
+          }
         }
       }
     ];
