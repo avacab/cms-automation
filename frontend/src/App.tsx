@@ -7,6 +7,7 @@ import PluginCard from './components/PluginCard'
 import LoadingSpinner from './components/LoadingSpinner'
 import ErrorDisplay from './components/ErrorDisplay'
 import ContentForm from './components/ContentForm'
+import LandingPage from './components/LandingPage'
 import { ContentItem, Plugin, contentService } from './services/api'
 import './App.css'
 
@@ -33,6 +34,12 @@ function App() {
                   Home
                 </Link>
                 <Link 
+                  to="/home" 
+                  className="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
+                >
+                  Dashboard
+                </Link>
+                <Link 
                   to="/content" 
                   className="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
                 >
@@ -57,7 +64,8 @@ function App() {
         
         <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
           <Routes>
-            <Route path="/" element={<HomePage />} />
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/home" element={<HomePage />} />
             <Route path="/content" element={<ContentPage />} />
             <Route path="/plugins" element={<PluginsPage />} />
             <Route path="/plugins/:id" element={<PluginDetailPage />} />
