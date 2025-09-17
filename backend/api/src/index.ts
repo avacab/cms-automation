@@ -49,14 +49,13 @@ app.get('/', (req, res) => {
 });
 
 // Import services and routes
-import { ContentService } from './services/ContentService.js';
 import { StorageFactory } from './services/StorageFactory.js';
 import { OpenAIService } from './services/OpenAIService.js';
 // import systemRoutes from './routes/system.js';
 // import optimizelyRoutes from '../routes/optimizely.js';
 
 // Initialize services
-const contentService = new ContentService();
+const storageFactory = StorageFactory.getInstance();
 const openaiService = new OpenAIService();
 
 // Helper function to generate slug from title (moved to ContentService)
@@ -81,7 +80,10 @@ app.get('/api/v1/content', async (req, res) => {
     if (offset) options.offset = parseInt(offset as string);
     if (search) options.search = search as string;
 
-    const data = await contentService.getAllContent(options);
+    const contentService = await storageFactory.getContentService();
+    const data = await (contentService as any).getAllContent?.(options) || 
+                 await (contentService as any).getAllContentItems?.(options.content_type_id);
+    
     res.json({
       message: 'Content endpoint',
       data
@@ -99,7 +101,9 @@ app.get('/api/v1/content', async (req, res) => {
 app.get('/api/v1/content/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const item = await contentService.getContentById(id);
+    const contentService = await storageFactory.getContentService();
+    const item = await (contentService as any).getContentById?.(id) || 
+                 await (contentService as any).getContentItemById?.(id);
     
     if (!item) {
       return res.status(404).json({
@@ -133,7 +137,8 @@ app.post('/api/v1/content', async (req, res) => {
       });
     }
     
-    const newItem = await contentService.createContent({
+    const contentService = await storageFactory.getContentService();
+    const itemData = {
       title: contentData.title,
       slug: contentData.slug,
       content: contentData.content || '',
@@ -142,7 +147,10 @@ app.post('/api/v1/content', async (req, res) => {
       meta_description: contentData.meta_description,
       featured_image: contentData.featured_image,
       tags: contentData.tags
-    });
+    };
+    
+    const newItem = await (contentService as any).createContent?.(itemData) || 
+                    await (contentService as any).createContentItem?.(itemData);
     
     res.status(201).json({
       message: 'Content item created successfully',
@@ -255,7 +263,9 @@ app.delete('/api/v1/content/:id', async (req, res) => {
 // Content types endpoint
 app.get('/api/v1/content-types', async (req, res) => {
   try {
-    const data = await contentService.getContentTypes();
+    const contentService = await storageFactory.getContentService();
+    const data = await (contentService as any).getContentTypes?.() || 
+                 await (contentService as any).getAllContentTypes?.();
     res.json({
       message: 'Content types endpoint',
       data

@@ -5,7 +5,7 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 export class OpenAIService {
-  private openai: OpenAI;
+  private openai: OpenAI | null = null;
   private initialized: boolean = false;
 
   constructor() {
@@ -46,7 +46,7 @@ export class OpenAIService {
     };
   }): Promise<{ success: boolean; data?: any; error?: any }> {
     
-    if (!this.initialized) {
+    if (!this.initialized || !this.openai) {
       return {
         success: false,
         error: {
@@ -154,7 +154,7 @@ export class OpenAIService {
     };
   }): Promise<{ success: boolean; data?: any; error?: any }> {
     
-    if (!this.initialized) {
+    if (!this.initialized || !this.openai) {
       return {
         success: false,
         error: {
@@ -238,7 +238,7 @@ export class OpenAIService {
     customConstraints?: Record<string, any>;
   }): Promise<{ success: boolean; data?: any; error?: any }> {
     
-    if (!this.initialized) {
+    if (!this.initialized || !this.openai) {
       return {
         success: false,
         error: {
