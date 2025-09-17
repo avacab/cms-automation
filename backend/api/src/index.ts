@@ -69,48 +69,30 @@ function generateSlug(title: string): string {
 }
 
 // Content API routes
-app.get('/api/v1/content', async (req, res) => {
-  try {
-    const { status, content_type_id, limit, offset, search } = req.query;
-    
-    const options: any = {};
-    if (status) options.status = status as string;
-    if (content_type_id) options.content_type_id = content_type_id as string;
-    if (limit) options.limit = parseInt(limit as string);
-    if (offset) options.offset = parseInt(offset as string);
-    if (search) options.search = search as string;
-
-    // Return sample data for now (storage configuration pending)
-    const sampleData = [
-      {
-        id: 'sample-1',
-        title: 'Welcome to CMS',
-        content: 'This is sample content for testing.',
-        status: 'published',
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      },
-      {
-        id: 'sample-2', 
-        title: 'Getting Started',
-        content: 'Learn how to use the CMS platform.',
-        status: 'draft',
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      }
-    ];
-    
-    res.json({
-      message: 'Content endpoint (sample data)',
-      data: sampleData
-    });
-  } catch (error) {
-    console.error('Error fetching content:', error);
-    res.status(500).json({
-      error: 'Internal Server Error',
-      message: 'Failed to fetch content'
-    });
-  }
+app.get('/api/v1/content', (req, res) => {
+  const sampleData = [
+    {
+      id: 'sample-1',
+      title: 'Welcome to CMS',
+      content: 'This is sample content for testing.',
+      status: 'published',
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    },
+    {
+      id: 'sample-2', 
+      title: 'Getting Started',
+      content: 'Learn how to use the CMS platform.',
+      status: 'draft',
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    }
+  ];
+  
+  res.json({
+    message: 'Content endpoint (sample data)',
+    data: sampleData
+  });
 });
 
 // Get single content item by ID
@@ -277,36 +259,27 @@ app.delete('/api/v1/content/:id', async (req, res) => {
 });
 
 // Content types endpoint
-app.get('/api/v1/content-types', async (req, res) => {
-  try {
-    // Return sample content types for now (storage configuration pending)
-    const sampleTypes = [
-      {
-        id: 'blog-post',
-        name: 'Blog Post',
-        description: 'Standard blog post content type',
-        schema: {
-          title: { type: 'string', required: true },
-          content: { type: 'text', required: true },
-          excerpt: { type: 'string' }
-        },
-        is_active: true,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      }
-    ];
-    
-    res.json({
-      message: 'Content types endpoint (sample data)',
-      data: sampleTypes
-    });
-  } catch (error) {
-    console.error('Error fetching content types:', error);
-    res.status(500).json({
-      error: 'Internal Server Error',
-      message: 'Failed to fetch content types'
-    });
-  }
+app.get('/api/v1/content-types', (req, res) => {
+  const sampleTypes = [
+    {
+      id: 'blog-post',
+      name: 'Blog Post',
+      description: 'Standard blog post content type',
+      schema: {
+        title: { type: 'string', required: true },
+        content: { type: 'text', required: true },
+        excerpt: { type: 'string' }
+      },
+      is_active: true,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    }
+  ];
+  
+  res.json({
+    message: 'Content types endpoint (sample data)',
+    data: sampleTypes
+  });
 });
 
 // Media endpoint
