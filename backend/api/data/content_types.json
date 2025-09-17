@@ -1,0 +1,64 @@
+[
+  {
+    "name": "Page",
+    "slug": "page",
+    "description": "Basic page content type",
+    "fields": [
+      {
+        "name": "title",
+        "type": "text",
+        "label": "Title",
+        "required": true
+      },
+      {
+        "name": "content",
+        "type": "richtext",
+        "label": "Content",
+        "required": true
+      },
+      {
+        "name": "meta_description",
+        "type": "text",
+        "label": "Meta Description",
+        "required": false
+      }
+    ],
+    "id": "abded17f-1549-414d-87c5-82d5f2ae0750",
+    "created_at": "2025-09-12T14:00:16.553Z",
+    "updated_at": "2025-09-12T14:00:16.554Z"
+  },
+  {
+    "name": "Blog Post",
+    "slug": "blog-post",
+    "description": "Blog post content type",
+    "fields": [
+      {
+        "name": "title",
+        "type": "text",
+        "label": "Title",
+        "required": true
+      },
+      {
+        "name": "content",
+        "type": "richtext",
+        "label": "Content",
+        "required": true
+      },
+      {
+        "name": "excerpt",
+        "type": "textarea",
+        "label": "Excerpt",
+        "required": false
+      },
+      {
+        "name": "featured_image",
+        "type": "image",
+        "label": "Featured Image",
+        "required": false
+      }
+    ],
+    "id": "9e50d0d1-b346-4111-8f62-db5b5f5a935f",
+    "created_at": "2025-09-12T14:00:16.554Z",
+    "updated_at": "2025-09-12T14:00:16.554Z"
+  }
+]
