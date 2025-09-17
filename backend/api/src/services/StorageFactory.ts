@@ -1,5 +1,5 @@
 import dotenv from 'dotenv';
-import { ContentService } from './ContentService.js';
+// import { ContentService } from './ContentService.js';
 import { SupabaseService } from './SupabaseService.js';
 
 // Load environment variables
@@ -13,7 +13,7 @@ if (env === 'supabase-test') {
 
 export class StorageFactory {
   private static instance: StorageFactory;
-  private contentService: ContentService | null = null;
+  // private contentService: ContentService | null = null;
   private supabaseService: SupabaseService | null = null;
 
   private constructor() {}
@@ -25,40 +25,30 @@ export class StorageFactory {
     return StorageFactory.instance;
   }
 
-  async getContentService(): Promise<ContentService | SupabaseService> {
-    const storageType = process.env.STORAGE_TYPE || 'local';
+  async getContentService(): Promise<SupabaseService> {
+    const storageType = process.env.STORAGE_TYPE || 'supabase';
 
     if (storageType === 'supabase') {
       return this.getSupabaseService();
     } else {
-      return this.getLocalContentService();
+      throw new Error('Local storage not available in serverless environment');
     }
   }
 
-  private getLocalContentService(): ContentService {
-    if (!this.contentService) {
-      this.contentService = new ContentService();
-      console.log('✅ Using local JSON storage');
-    }
-    return this.contentService;
-  }
-
-  private async getSupabaseService(): Promise<SupabaseService | ContentService> {
+  private async getSupabaseService(): Promise<SupabaseService> {
     if (!this.supabaseService) {
       const supabaseUrl = process.env.SUPABASE_URL;
       const supabaseKey = process.env.SUPABASE_SERVICE_KEY;
 
       if (!supabaseUrl || !supabaseKey) {
-        console.error('❌ Missing Supabase configuration, falling back to local storage');
-        return this.getLocalContentService();
+        throw new Error('Missing Supabase configuration - SUPABASE_URL and SUPABASE_SERVICE_KEY required');
       }
 
       this.supabaseService = new SupabaseService(supabaseUrl, supabaseKey);
       
       const initialized = await this.supabaseService.initialize();
       if (!initialized) {
-        console.error('❌ Failed to initialize Supabase, falling back to local storage');
-        return this.getLocalContentService();
+        throw new Error('Failed to initialize Supabase service');
       }
 
       console.log('✅ Using Supabase storage');
@@ -68,40 +58,32 @@ export class StorageFactory {
   }
 
   async getStorageInfo(): Promise<{ type: string; status: string; details?: any }> {
-    const storageType = process.env.STORAGE_TYPE || 'local';
+    const storageType = process.env.STORAGE_TYPE || 'supabase';
 
-    if (storageType === 'supabase') {
-      try {
-        const service = await this.getSupabaseService();
-        if (service instanceof SupabaseService && service.isReady()) {
-          const stats = await service.getStats();
-          return {
-            type: 'supabase',
-            status: 'connected',
-            details: {
-              url: process.env.SUPABASE_URL,
-              stats
-            }
-          };
-        } else {
-          return {
-            type: 'supabase',
-            status: 'failed',
-            details: 'Service initialization failed'
-          };
-        }
-      } catch (error: any) {
+    try {
+      const service = await this.getSupabaseService();
+      if (service.isReady()) {
+        const stats = await service.getStats();
         return {
           type: 'supabase',
-          status: 'error',
-          details: error.message
+          status: 'connected',
+          details: {
+            url: process.env.SUPABASE_URL,
+            stats
+          }
+        };
+      } else {
+        return {
+          type: 'supabase',
+          status: 'failed',
+          details: 'Service initialization failed'
         };
       }
-    } else {
+    } catch (error: any) {
       return {
-        type: 'local',
-        status: 'active',
-        details: 'Using local JSON files'
+        type: 'supabase',
+        status: 'error',
+        details: error.message
       };
     }
   }
@@ -113,54 +95,32 @@ export class StorageFactory {
         const service = await this.getContentService();
         if (service instanceof SupabaseService) {
           return service.getAllContentTypes();
-        } else {
-          return service.getContentTypes();
         }
       },
 
       getContentItems: async (contentTypeId?: string) => {
         const service = await this.getContentService();
-        if (service instanceof SupabaseService) {
-          return service.getAllContentItems(contentTypeId);
-        } else {
-          return service.getAllContent({});
-        }
+        return service.getAllContentItems(contentTypeId);
       },
 
       getContentItemById: async (id: string) => {
         const service = await this.getContentService();
-        if (service instanceof SupabaseService) {
-          return service.getContentItemById(id);
-        } else {
-          return service.getContentById(id);
-        }
+        return service.getContentItemById(id);
       },
 
       createContentItem: async (data: any) => {
         const service = await this.getContentService();
-        if (service instanceof SupabaseService) {
-          return service.createContentItem(data);
-        } else {
-          return service.createContent(data);
-        }
+        return service.createContentItem(data);
       },
 
       updateContentItem: async (id: string, data: any) => {
         const service = await this.getContentService();
-        if (service instanceof SupabaseService) {
-          return service.updateContentItem(id, data);
-        } else {
-          return service.updateContent(id, data);
-        }
+        return service.updateContentItem(id, data);
       },
 
       deleteContentItem: async (id: string) => {
         const service = await this.getContentService();
-        if (service instanceof SupabaseService) {
-          return service.deleteContentItem(id);
-        } else {
-          return service.deleteContent(id);
-        }
+        return service.deleteContentItem(id);
       }
     };
   }
