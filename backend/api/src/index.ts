@@ -49,13 +49,13 @@ app.get('/', (req, res) => {
 });
 
 // Import services and routes
-import { StorageFactory } from './services/StorageFactory.js';
+// import { StorageFactory } from './services/StorageFactory.js';
 import { OpenAIService } from './services/OpenAIService.js';
 // import systemRoutes from './routes/system.js';
 // import optimizelyRoutes from '../routes/optimizely.js';
 
 // Initialize services
-const storageFactory = StorageFactory.getInstance();
+// const storageFactory = StorageFactory.getInstance();
 const openaiService = new OpenAIService();
 
 // Helper function to generate slug from title (moved to ContentService)
@@ -413,33 +413,26 @@ app.get('/api/v1/ai/adapt/formats', async (req, res) => {
 });
 
 // System status endpoint
-app.get('/api/v1/system/status', async (req, res) => {
-  try {
-    const factory = StorageFactory.getInstance();
-    const storageInfo = await factory.getStorageInfo();
+app.get('/api/v1/system/status', (req, res) => {
+  const systemStatus = {
+    status: 'operational',
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || 'development',
+    storage: {
+      type: 'sample',
+      status: 'active',
+      details: 'Using sample data for testing'
+    },
+    version: '1.0.0',
+    features: {
+      supabase_ready: false,
+      local_storage: false,
+      ai_integration: openaiService.isReady(),
+      openai_configured: !!process.env.OPENAI_API_KEY
+    }
+  };
 
-    const systemStatus = {
-      status: 'operational',
-      timestamp: new Date().toISOString(),
-      environment: process.env.NODE_ENV || 'development',
-      storage: storageInfo,
-      version: '1.0.0',
-      features: {
-        supabase_ready: storageInfo.type === 'supabase' && storageInfo.status === 'connected',
-        local_storage: storageInfo.type === 'local',
-        ai_integration: openaiService.isReady(),
-        openai_configured: !!process.env.OPENAI_API_KEY
-      }
-    };
-
-    res.json(systemStatus);
-  } catch (error: any) {
-    res.status(500).json({
-      status: 'error',
-      message: 'Failed to get system status',
-      error: error.message
-    });
-  }
+  res.json(systemStatus);
 });
 
 // System setup instructions
