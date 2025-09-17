@@ -70,28 +70,11 @@ function generateSlug(title: string): string {
 
 // Content API routes
 app.get('/api/v1/content', (req, res) => {
-  const sampleData = [
-    {
-      id: 'sample-1',
-      title: 'Welcome to CMS',
-      content: 'This is sample content for testing.',
-      status: 'published',
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    },
-    {
-      id: 'sample-2', 
-      title: 'Getting Started',
-      content: 'Learn how to use the CMS platform.',
-      status: 'draft',
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    }
-  ];
-  
   res.json({
-    message: 'Content endpoint (sample data)',
-    data: sampleData
+    message: 'Content endpoint test',
+    data: [
+      { id: '1', title: 'Test Content', status: 'published' }
+    ]
   });
 });
 
