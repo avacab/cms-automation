@@ -68,6 +68,11 @@ function generateSlug(title: string): string {
     .trim();
 }
 
+// Test endpoint
+app.get('/api/v1/test', (req, res) => {
+  res.json({ message: 'Test works' });
+});
+
 // Content API routes
 app.get('/api/v1/content', (req, res) => {
   res.json({
