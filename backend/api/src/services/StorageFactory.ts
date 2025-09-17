@@ -27,6 +27,7 @@ export class StorageFactory {
 
   async getContentService(): Promise<SupabaseService> {
     const storageType = process.env.STORAGE_TYPE || 'supabase';
+    console.log('🔍 StorageFactory using storage type:', storageType);
 
     if (storageType === 'supabase') {
       return this.getSupabaseService();
@@ -39,6 +40,13 @@ export class StorageFactory {
     if (!this.supabaseService) {
       const supabaseUrl = process.env.SUPABASE_URL;
       const supabaseKey = process.env.SUPABASE_SERVICE_KEY;
+
+      console.log('🔍 Supabase config check:', {
+        hasUrl: !!supabaseUrl,
+        urlPreview: supabaseUrl ? supabaseUrl.substring(0, 30) + '...' : 'missing',
+        hasKey: !!supabaseKey,
+        keyPreview: supabaseKey ? supabaseKey.substring(0, 20) + '...' : 'missing'
+      });
 
       if (!supabaseUrl || !supabaseKey) {
         throw new Error('Missing Supabase configuration - SUPABASE_URL and SUPABASE_SERVICE_KEY required');

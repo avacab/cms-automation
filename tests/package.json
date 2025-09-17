@@ -1,0 +1,30 @@
+{
+  "name": "cms-automation-tests",
+  "version": "1.0.0",
+  "description": "Test suite for CMS automation platform",
+  "main": "index.js",
+  "scripts": {
+    "test": "npm run test:content && npm run test:frontend && npm run test:all",
+    "test:content": "node content-creation.test.js",
+    "test:frontend": "node frontend-integration.test.js",
+    "test:all": "node run-all-tests.js",
+    "test:watch": "nodemon run-all-tests.js",
+    "test:ci": "node run-all-tests.js --ci"
+  },
+  "keywords": [
+    "cms",
+    "testing",
+    "automation",
+    "api",
+    "integration"
+  ],
+  "author": "CMS Automation Team",
+  "license": "MIT",
+  "dependencies": {
+    "axios": "^1.6.0",
+    "jsdom": "^22.1.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  }
+}
