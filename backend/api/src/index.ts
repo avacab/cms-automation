@@ -16,7 +16,11 @@ const PORT = process.env.PORT || 5000;
 // Middleware
 app.use(helmet());
 app.use(cors({
-  origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
+  origin: [
+    'http://localhost:3000',
+    'https://cms-automation-frontend.vercel.app',
+    process.env.CORS_ORIGIN
+  ].filter(Boolean),
   credentials: true
 }));
 app.use(compression());
