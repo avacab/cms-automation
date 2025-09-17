@@ -255,6 +255,29 @@ app.get('/api/v1/media', (req, res) => {
   });
 });
 
+// Plugins endpoint
+app.get('/api/v1/plugins', (req, res) => {
+  res.json({
+    message: 'Plugins endpoint',
+    data: [
+      {
+        id: 'optimizely',
+        name: 'Optimizely Integration',
+        description: 'Content optimization and A/B testing',
+        status: 'available',
+        enabled: false
+      },
+      {
+        id: 'wordpress',
+        name: 'WordPress Integration', 
+        description: 'Publish content to WordPress',
+        status: 'available',
+        enabled: false
+      }
+    ]
+  });
+});
+
 // AI Generation endpoint (temporarily disabled)
 app.post('/api/v1/ai/generate', (req, res) => {
   res.status(503).json({
