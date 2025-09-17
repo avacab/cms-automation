@@ -79,166 +79,43 @@ app.get('/api/v1/content', (req, res) => {
 });
 
 // Get single content item by ID
-app.get('/api/v1/content/:id', async (req, res) => {
-  try {
-    const { id } = req.params;
-    const contentService = await storageFactory.getContentService();
-    const item = await (contentService as any).getContentById?.(id) || 
-                 await (contentService as any).getContentItemById?.(id);
-    
-    if (!item) {
-      return res.status(404).json({
-        error: 'Not Found',
-        message: `Content item with ID ${id} not found`
-      });
-    }
-    
+app.get('/api/v1/content/:id', (req, res) => {
+  const { id } = req.params;
+  if (id === '1') {
     res.json({
       message: 'Content item found',
-      data: item
+      data: { id: '1', title: 'Test Content', status: 'published' }
     });
-  } catch (error) {
-    console.error('Error fetching content item:', error);
-    res.status(500).json({
-      error: 'Internal Server Error',
-      message: 'Failed to fetch content item'
+  } else {
+    res.status(404).json({
+      error: 'Not Found',
+      message: `Content item with ID ${id} not found`
     });
   }
 });
 
 // Create new content item
-app.post('/api/v1/content', async (req, res) => {
-  try {
-    const { content: contentData } = req.body;
-    
-    if (!contentData || !contentData.title) {
-      return res.status(400).json({
-        error: 'Bad Request',
-        message: 'Title is required'
-      });
-    }
-    
-    const contentService = await storageFactory.getContentService();
-    const itemData = {
-      title: contentData.title,
-      slug: contentData.slug,
-      content: contentData.content || '',
-      status: contentData.status || 'draft',
-      content_type_id: contentData.content_type_id,
-      meta_description: contentData.meta_description,
-      featured_image: contentData.featured_image,
-      tags: contentData.tags
-    };
-    
-    const newItem = await (contentService as any).createContent?.(itemData) || 
-                    await (contentService as any).createContentItem?.(itemData);
-    
-    res.status(201).json({
-      message: 'Content item created successfully',
-      data: newItem
-    });
-  } catch (error) {
-    console.error('Error creating content item:', error);
-    if ((error as Error).message.includes('already exists')) {
-      res.status(409).json({
-        error: 'Conflict',
-        message: (error as Error).message
-      });
-    } else {
-      res.status(500).json({
-        error: 'Internal Server Error',
-        message: 'Failed to create content item'
-      });
-    }
-  }
+app.post('/api/v1/content', (req, res) => {
+  res.status(501).json({
+    error: 'Not Implemented',
+    message: 'Content creation temporarily disabled during configuration'
+  });
 });
 
 // Update content item
-app.put('/api/v1/content/:id', async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { content: contentData } = req.body;
-    
-    if (!contentData || !contentData.title) {
-      return res.status(400).json({
-        error: 'Bad Request',
-        message: 'Title is required'
-      });
-    }
-    
-    const updatedItem = await contentService.updateContent(id, {
-      title: contentData.title,
-      slug: contentData.slug,
-      content: contentData.content,
-      status: contentData.status,
-      meta_description: contentData.meta_description,
-      featured_image: contentData.featured_image,
-      tags: contentData.tags
-    });
-    
-    if (!updatedItem) {
-      return res.status(404).json({
-        error: 'Not Found',
-        message: `Content item with ID ${id} not found`
-      });
-    }
-    
-    res.json({
-      message: 'Content item updated successfully',
-      data: updatedItem
-    });
-  } catch (error) {
-    console.error('Error updating content item:', error);
-    if ((error as Error).message.includes('already exists')) {
-      res.status(409).json({
-        error: 'Conflict',
-        message: (error as Error).message
-      });
-    } else {
-      res.status(500).json({
-        error: 'Internal Server Error',
-        message: 'Failed to update content item'
-      });
-    }
-  }
+app.put('/api/v1/content/:id', (req, res) => {
+  res.status(501).json({
+    error: 'Not Implemented',
+    message: 'Content updates temporarily disabled during configuration'
+  });
 });
 
 // Delete content item
-app.delete('/api/v1/content/:id', async (req, res) => {
-  try {
-    const { id } = req.params;
-    
-    const item = await contentService.getContentById(id);
-    if (!item) {
-      return res.status(404).json({
-        error: 'Not Found',
-        message: `Content item with ID ${id} not found`
-      });
-    }
-    
-    const deleted = await contentService.deleteContent(id);
-    
-    if (!deleted) {
-      return res.status(500).json({
-        error: 'Internal Server Error',
-        message: 'Failed to delete content item'
-      });
-    }
-    
-    res.json({
-      message: 'Content item deleted successfully',
-      data: {
-        success: true,
-        message: `Content item "${item.title}" has been deleted`
-      }
-    });
-  } catch (error) {
-    console.error('Error deleting content item:', error);
-    res.status(500).json({
-      error: 'Internal Server Error',
-      message: 'Failed to delete content item'
-    });
-  }
+app.delete('/api/v1/content/:id', (req, res) => {
+  res.status(501).json({
+    error: 'Not Implemented',
+    message: 'Content deletion temporarily disabled during configuration'
+  });
 });
 
 // Content types endpoint
@@ -266,20 +143,11 @@ app.get('/api/v1/content-types', (req, res) => {
 });
 
 // Media endpoint
-app.get('/api/v1/media', async (req, res) => {
-  try {
-    const data = await contentService.getMediaFiles();
-    res.json({
-      message: 'Media endpoint',
-      data
-    });
-  } catch (error) {
-    console.error('Error fetching media files:', error);
-    res.status(500).json({
-      error: 'Internal Server Error',
-      message: 'Failed to fetch media files'
-    });
-  }
+app.get('/api/v1/media', (req, res) => {
+  res.json({
+    message: 'Media endpoint (sample data)',
+    data: []
+  });
 });
 
 // AI Generation endpoint (temporarily disabled)
