@@ -84,6 +84,44 @@ app.get('/api/v1/debug/env', (req, res) => {
   });
 });
 
+// Direct Supabase connection test
+app.get('/api/v1/debug/supabase', async (req, res) => {
+  try {
+    const { createClient } = await import('@supabase/supabase-js');
+    const supabase = createClient(
+      process.env.SUPABASE_URL!, 
+      process.env.SUPABASE_SERVICE_KEY!
+    );
+    
+    // Test connection by querying content_types
+    const { data, error } = await supabase
+      .from('content_types')
+      .select('*')
+      .limit(5);
+      
+    if (error) {
+      res.json({
+        success: false,
+        error: error.message,
+        code: error.code,
+        details: error.details
+      });
+    } else {
+      res.json({
+        success: true,
+        data_count: data?.length || 0,
+        sample_data: data?.[0] || null
+      });
+    }
+  } catch (err: any) {
+    res.json({
+      success: false,
+      error: err.message,
+      stack: err.stack
+    });
+  }
+});
+
 // Content API routes
 app.get('/api/v1/content', async (req, res) => {
   try {
