@@ -50,13 +50,13 @@ app.get('/', (req, res) => {
 
 // Import services and routes
 // import { StorageFactory } from './services/StorageFactory.js';
-import { OpenAIService } from './services/OpenAIService.js';
+// import { OpenAIService } from './services/OpenAIService.js';
 // import systemRoutes from './routes/system.js';
 // import optimizelyRoutes from '../routes/optimizely.js';
 
 // Initialize services
 // const storageFactory = StorageFactory.getInstance();
-const openaiService = new OpenAIService();
+// const openaiService = new OpenAIService();
 
 // Helper function to generate slug from title (moved to ContentService)
 function generateSlug(title: string): string {
@@ -299,117 +299,48 @@ app.get('/api/v1/media', async (req, res) => {
   }
 });
 
-// AI Generation endpoint (direct OpenAI integration)
-app.post('/api/v1/ai/generate', async (req, res) => {
-  try {
-    if (!openaiService.isReady()) {
-      return res.status(503).json({
-        success: false,
-        error: {
-          code: 'AI_SERVICE_UNAVAILABLE',
-          message: 'AI service is not available. Please check OpenAI configuration.'
-        }
-      });
+// AI Generation endpoint (temporarily disabled)
+app.post('/api/v1/ai/generate', (req, res) => {
+  res.status(503).json({
+    success: false,
+    error: {
+      code: 'AI_SERVICE_UNAVAILABLE',
+      message: 'AI service is temporarily unavailable during deployment configuration.'
     }
-
-    const result = await openaiService.generateContent(req.body);
-    
-    if (result.success) {
-      res.json(result);
-    } else {
-      res.status(500).json(result);
-    }
-  } catch (error) {
-    console.error('Error in AI generation:', error);
-    res.status(500).json({
-      success: false,
-      error: {
-        code: 'AI_GENERATION_ERROR',
-        message: 'Failed to generate content'
-      }
-    });
-  }
+  });
 });
 
-// AI Writing Suggestions endpoint (direct OpenAI integration)
-app.post('/api/v1/ai/suggestions', async (req, res) => {
-  try {
-    if (!openaiService.isReady()) {
-      return res.status(503).json({
-        success: false,
-        error: {
-          code: 'AI_SERVICE_UNAVAILABLE',
-          message: 'AI service is not available. Please check OpenAI configuration.'
-        }
-      });
+// AI Writing Suggestions endpoint (temporarily disabled)
+app.post('/api/v1/ai/suggestions', (req, res) => {
+  res.status(503).json({
+    success: false,
+    error: {
+      code: 'AI_SERVICE_UNAVAILABLE',
+      message: 'AI service is temporarily unavailable during deployment configuration.'
     }
-
-    const result = await openaiService.getWritingSuggestions(req.body);
-    
-    if (result.success) {
-      res.json(result);
-    } else {
-      res.status(500).json(result);
-    }
-  } catch (error) {
-    console.error('Error in AI suggestions:', error);
-    res.status(500).json({
-      success: false,
-      error: {
-        code: 'AI_SUGGESTIONS_ERROR',
-        message: 'Failed to get writing suggestions'
-      }
-    });
-  }
+  });
 });
 
-// AI Content Adaptation endpoint (direct OpenAI integration)
-app.post('/api/v1/ai/adapt', async (req, res) => {
-  try {
-    if (!openaiService.isReady()) {
-      return res.status(503).json({
-        success: false,
-        error: {
-          code: 'AI_SERVICE_UNAVAILABLE',
-          message: 'AI service is not available. Please check OpenAI configuration.'
-        }
-      });
+// AI Content Adaptation endpoint (temporarily disabled)
+app.post('/api/v1/ai/adapt', (req, res) => {
+  res.status(503).json({
+    success: false,
+    error: {
+      code: 'AI_SERVICE_UNAVAILABLE',
+      message: 'AI service is temporarily unavailable during deployment configuration.'
     }
-
-    const result = await openaiService.adaptContent(req.body);
-    
-    if (result.success) {
-      res.json(result);
-    } else {
-      res.status(500).json(result);
-    }
-  } catch (error) {
-    console.error('Error in AI adaptation:', error);
-    res.status(500).json({
-      success: false,
-      error: {
-        code: 'AI_ADAPTATION_ERROR',
-        message: 'Failed to adapt content'
-      }
-    });
-  }
+  });
 });
 
-// AI Adaptation Formats endpoint (direct OpenAI integration)
-app.get('/api/v1/ai/adapt/formats', async (req, res) => {
-  try {
-    const result = openaiService.getAvailableFormats();
-    res.json(result);
-  } catch (error) {
-    console.error('Error getting available formats:', error);
-    res.status(500).json({
-      success: false,
-      error: {
-        code: 'AI_FORMATS_ERROR',
-        message: 'Failed to get available formats'
-      }
-    });
-  }
+// AI Adaptation Formats endpoint (temporarily disabled)
+app.get('/api/v1/ai/adapt/formats', (req, res) => {
+  res.status(503).json({
+    success: false,
+    error: {
+      code: 'AI_SERVICE_UNAVAILABLE',
+      message: 'AI service is temporarily unavailable during deployment configuration.'
+    }
+  });
 });
 
 // System status endpoint
@@ -427,7 +358,7 @@ app.get('/api/v1/system/status', (req, res) => {
     features: {
       supabase_ready: false,
       local_storage: false,
-      ai_integration: openaiService.isReady(),
+      ai_integration: false,
       openai_configured: !!process.env.OPENAI_API_KEY
     }
   };
