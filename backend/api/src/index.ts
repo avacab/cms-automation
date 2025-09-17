@@ -74,13 +74,28 @@ app.get('/api/v1/test', (req, res) => {
 });
 
 // Content API routes
-app.get('/api/v1/content', (req, res) => {
-  res.json({
-    message: 'Content endpoint test',
-    data: [
-      { id: '1', title: 'Test Content', status: 'published' }
-    ]
-  });
+app.get('/api/v1/content', async (req, res) => {
+  try {
+    // Try to get real data from Supabase if available
+    const { StorageFactory } = await import('./services/StorageFactory.js');
+    const factory = StorageFactory.getInstance();
+    const service = await factory.getContentService();
+    const data = await service.getAllContentItems();
+    
+    res.json({
+      message: 'Content endpoint (Supabase data)',
+      data
+    });
+  } catch (error) {
+    console.error('Supabase error, using sample data:', error);
+    // Fallback to sample data
+    res.json({
+      message: 'Content endpoint (sample data)',
+      data: [
+        { id: '1', title: 'Test Content', status: 'published' }
+      ]
+    });
+  }
 });
 
 // Get single content item by ID
@@ -124,27 +139,42 @@ app.delete('/api/v1/content/:id', (req, res) => {
 });
 
 // Content types endpoint
-app.get('/api/v1/content-types', (req, res) => {
-  const sampleTypes = [
-    {
-      id: 'blog-post',
-      name: 'Blog Post',
-      description: 'Standard blog post content type',
-      schema: {
-        title: { type: 'string', required: true },
-        content: { type: 'text', required: true },
-        excerpt: { type: 'string' }
-      },
-      is_active: true,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    }
-  ];
-  
-  res.json({
-    message: 'Content types endpoint (sample data)',
-    data: sampleTypes
-  });
+app.get('/api/v1/content-types', async (req, res) => {
+  try {
+    // Try to get real data from Supabase if available
+    const { StorageFactory } = await import('./services/StorageFactory.js');
+    const factory = StorageFactory.getInstance();
+    const service = await factory.getContentService();
+    const data = await service.getAllContentTypes();
+    
+    res.json({
+      message: 'Content types endpoint (Supabase data)',
+      data
+    });
+  } catch (error) {
+    console.error('Supabase error, using sample data:', error);
+    // Fallback to sample data
+    const sampleTypes = [
+      {
+        id: 'blog-post',
+        name: 'Blog Post',
+        description: 'Standard blog post content type',
+        schema: {
+          title: { type: 'string', required: true },
+          content: { type: 'text', required: true },
+          excerpt: { type: 'string' }
+        },
+        is_active: true,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      }
+    ];
+    
+    res.json({
+      message: 'Content types endpoint (sample data)',
+      data: sampleTypes
+    });
+  }
 });
 
 // Media endpoint
