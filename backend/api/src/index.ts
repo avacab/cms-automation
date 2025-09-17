@@ -73,6 +73,17 @@ app.get('/api/v1/test', (req, res) => {
   res.json({ message: 'Test works' });
 });
 
+// Debug environment variables
+app.get('/api/v1/debug/env', (req, res) => {
+  res.json({
+    storage_type: process.env.STORAGE_TYPE,
+    node_env: process.env.NODE_ENV,
+    has_supabase_url: !!process.env.SUPABASE_URL,
+    has_supabase_key: !!process.env.SUPABASE_SERVICE_KEY,
+    supabase_url_preview: process.env.SUPABASE_URL ? process.env.SUPABASE_URL.substring(0, 30) + '...' : 'missing'
+  });
+});
+
 // Content API routes
 app.get('/api/v1/content', async (req, res) => {
   try {
