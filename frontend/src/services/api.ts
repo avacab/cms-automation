@@ -142,8 +142,8 @@ export const pluginService = {
       const response = await api.get<ApiResponse<Plugin[]>>('/api/v1/plugins');
       return response.data.data;
     } catch (error) {
-      // Return mock data if endpoint doesn't exist yet
-      return this.getMockPlugins();
+      console.error('Failed to fetch plugins from API:', error);
+      throw error;
     }
   },
 
@@ -153,13 +153,8 @@ export const pluginService = {
       const response = await api.get<ApiResponse<Plugin>>(`/api/v1/plugins/${id}`);
       return response.data.data;
     } catch (error) {
-      // Return mock data for testing
-      const plugins = await this.getMockPlugins();
-      const plugin = plugins.find(p => p.id === id);
-      if (!plugin) {
-        throw new Error(`Plugin ${id} not found`);
-      }
-      return plugin;
+      console.error(`Failed to fetch plugin ${id} from API:`, error);
+      throw error;
     }
   },
 
