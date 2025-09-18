@@ -88,7 +88,24 @@ app.get('/api/v1/debug/env', (req, res) => {
     node_env: process.env.NODE_ENV,
     has_supabase_url: !!process.env.SUPABASE_URL,
     has_supabase_key: !!process.env.SUPABASE_SERVICE_KEY,
-    supabase_url_preview: process.env.SUPABASE_URL ? process.env.SUPABASE_URL.substring(0, 30) + '...' : 'missing'
+    supabase_url_preview: process.env.SUPABASE_URL ? process.env.SUPABASE_URL.substring(0, 30) + '...' : 'missing',
+    cors_origin: process.env.CORS_ORIGIN
+  });
+});
+
+// Frontend connectivity test endpoint
+app.get('/api/v1/debug/frontend-test', (req, res) => {
+  res.json({
+    success: true,
+    message: 'Frontend can reach backend API',
+    timestamp: new Date().toISOString(),
+    origin: req.headers.origin,
+    user_agent: req.headers['user-agent'],
+    method: req.method,
+    cors_headers: {
+      'Access-Control-Allow-Origin': res.getHeader('Access-Control-Allow-Origin'),
+      'Access-Control-Allow-Credentials': res.getHeader('Access-Control-Allow-Credentials')
+    }
   });
 });
 
