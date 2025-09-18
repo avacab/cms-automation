@@ -447,102 +447,162 @@ app.get('/api/v1/media', (req, res) => {
   });
 });
 
+// Plugin state management (in-memory storage)
+const pluginStates: Record<string, 'active' | 'inactive'> = {
+  'ai-writing-assistant': 'active',
+  'content-adaptation': 'active',
+  'optimizely': 'inactive',
+  'wordpress': 'inactive',
+  'drupal': 'inactive',
+  'shopify': 'inactive',
+  'wix': 'inactive',
+  'seo-optimizer': 'inactive',
+  'media-manager': 'inactive'
+};
+
 // Plugins endpoint
 app.get('/api/v1/plugins', (req, res) => {
+  const plugins = [
+    {
+      id: 'optimizely',
+      name: 'Optimizely Integration',
+      description: 'Content optimization and A/B testing',
+      version: '1.0.0',
+      author: 'CMS Team',
+      type: 'marketing'
+    },
+    {
+      id: 'wordpress',
+      name: 'WordPress Integration', 
+      description: 'Publish content to WordPress sites',
+      version: '1.0.0',
+      author: 'CMS Team',
+      type: 'publishing'
+    },
+    {
+      id: 'drupal',
+      name: 'Drupal Integration',
+      description: 'Headless CMS bridge for Drupal sites',
+      version: '1.0.0',
+      author: 'CMS Team',
+      type: 'publishing'
+    },
+    {
+      id: 'shopify',
+      name: 'Shopify Integration',
+      description: 'E-commerce content sync with Shopify',
+      version: '1.0.0',
+      author: 'CMS Team',
+      type: 'ecommerce'
+    },
+    {
+      id: 'wix',
+      name: 'Wix Plugin',
+      description: 'AI-powered content enhancement for Wix',
+      version: '1.0.0',
+      author: 'CMS Team',
+      type: 'website-builder'
+    },
+    {
+      id: 'ai-writing-assistant',
+      name: 'AI Writing Assistant',
+      description: 'Advanced AI-powered content generation and optimization',
+      version: '1.2.0',
+      author: 'CMS Team',
+      type: 'ai-tools'
+    },
+    {
+      id: 'seo-optimizer',
+      name: 'SEO Optimization',
+      description: 'Automated SEO analysis and content optimization',
+      version: '1.0.0',
+      author: 'CMS Team',
+      type: 'seo'
+    },
+    {
+      id: 'content-adaptation',
+      name: 'Content Adaptation',
+      description: 'Multi-format content transformation and adaptation',
+      version: '1.1.0',
+      author: 'CMS Team',
+      type: 'transformation'
+    },
+    {
+      id: 'media-manager',
+      name: 'Media Management',
+      description: 'Advanced media library and asset management',
+      version: '1.0.0',
+      author: 'CMS Team',
+      type: 'media'
+    }
+  ];
+
+  // Add dynamic status and enabled fields based on current state
+  const pluginsWithStatus = plugins.map(plugin => ({
+    ...plugin,
+    status: pluginStates[plugin.id] || 'inactive',
+    enabled: pluginStates[plugin.id] === 'active'
+  }));
+
   res.json({
     message: 'Plugins endpoint',
-    data: [
-      {
-        id: 'optimizely',
-        name: 'Optimizely Integration',
-        description: 'Content optimization and A/B testing',
-        status: 'inactive',
-        enabled: false,
-        version: '1.0.0',
-        author: 'CMS Team',
-        type: 'marketing'
-      },
-      {
-        id: 'wordpress',
-        name: 'WordPress Integration', 
-        description: 'Publish content to WordPress sites',
-        status: 'inactive',
-        enabled: false,
-        version: '1.0.0',
-        author: 'CMS Team',
-        type: 'publishing'
-      },
-      {
-        id: 'drupal',
-        name: 'Drupal Integration',
-        description: 'Headless CMS bridge for Drupal sites',
-        status: 'inactive',
-        enabled: false,
-        version: '1.0.0',
-        author: 'CMS Team',
-        type: 'publishing'
-      },
-      {
-        id: 'shopify',
-        name: 'Shopify Integration',
-        description: 'E-commerce content sync with Shopify',
-        status: 'inactive',
-        enabled: false,
-        version: '1.0.0',
-        author: 'CMS Team',
-        type: 'ecommerce'
-      },
-      {
-        id: 'wix',
-        name: 'Wix Plugin',
-        description: 'AI-powered content enhancement for Wix',
-        status: 'inactive',
-        enabled: false,
-        version: '1.0.0',
-        author: 'CMS Team',
-        type: 'website-builder'
-      },
-      {
-        id: 'ai-writing-assistant',
-        name: 'AI Writing Assistant',
-        description: 'Advanced AI-powered content generation and optimization',
-        status: 'active',
-        enabled: true,
-        version: '1.2.0',
-        author: 'CMS Team',
-        type: 'ai-tools'
-      },
-      {
-        id: 'seo-optimizer',
-        name: 'SEO Optimization',
-        description: 'Automated SEO analysis and content optimization',
-        status: 'inactive',
-        enabled: false,
-        version: '1.0.0',
-        author: 'CMS Team',
-        type: 'seo'
-      },
-      {
-        id: 'content-adaptation',
-        name: 'Content Adaptation',
-        description: 'Multi-format content transformation and adaptation',
-        status: 'active',
-        enabled: true,
-        version: '1.1.0',
-        author: 'CMS Team',
-        type: 'transformation'
-      },
-      {
-        id: 'media-manager',
-        name: 'Media Management',
-        description: 'Advanced media library and asset management',
-        status: 'inactive',
-        enabled: false,
-        version: '1.0.0',
-        author: 'CMS Team',
-        type: 'media'
-      }
-    ]
+    data: pluginsWithStatus
+  });
+});
+
+// Activate plugin
+app.post('/api/v1/plugins/:id/activate', (req, res) => {
+  const { id } = req.params;
+  
+  // Check if plugin exists in our plugin list
+  const pluginExists = ['optimizely', 'wordpress', 'drupal', 'shopify', 'wix', 'ai-writing-assistant', 'seo-optimizer', 'content-adaptation', 'media-manager'].includes(id);
+  
+  if (!pluginExists) {
+    return res.status(404).json({
+      success: false,
+      message: `Plugin '${id}' not found`
+    });
+  }
+
+  // Update plugin state
+  pluginStates[id] = 'active';
+  
+  res.json({
+    success: true,
+    message: `Plugin '${id}' activated successfully`,
+    data: {
+      id,
+      status: 'active',
+      enabled: true
+    }
+  });
+});
+
+// Deactivate plugin
+app.post('/api/v1/plugins/:id/deactivate', (req, res) => {
+  const { id } = req.params;
+  
+  // Check if plugin exists in our plugin list
+  const pluginExists = ['optimizely', 'wordpress', 'drupal', 'shopify', 'wix', 'ai-writing-assistant', 'seo-optimizer', 'content-adaptation', 'media-manager'].includes(id);
+  
+  if (!pluginExists) {
+    return res.status(404).json({
+      success: false,
+      message: `Plugin '${id}' not found`
+    });
+  }
+
+  // Update plugin state
+  pluginStates[id] = 'inactive';
+  
+  res.json({
+    success: true,
+    message: `Plugin '${id}' deactivated successfully`,
+    data: {
+      id,
+      status: 'inactive',
+      enabled: false
+    }
   });
 });
 
