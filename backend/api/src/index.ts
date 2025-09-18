@@ -5,6 +5,7 @@ import morgan from 'morgan';
 import compression from 'compression';
 import dotenv from 'dotenv';
 import { createServer } from 'http';
+import { OpenAIService } from './services/OpenAIService.js';
 
 // Load environment variables
 dotenv.config();
@@ -12,6 +13,9 @@ dotenv.config();
 const app = express();
 const server = createServer(app);
 const PORT = process.env.PORT || 5000;
+
+// Initialize OpenAI service
+const openAIService = new OpenAIService();
 
 // Middleware
 app.use(helmet());
@@ -488,29 +492,74 @@ app.post('/api/v1/ai/generate', async (req, res) => {
       });
     }
 
-    // Create more realistic mock content based on the request
-    const baseContent = prompt || text || 'Default content';
-    const contentLength = targetLength || 200;
-    
-    const mockContent = `This is AI-generated content based on your request. ${context ? `Context: ${context}. ` : ''}${baseContent} 
+    // Use OpenAI service for content generation
+    if (!openAIService.isReady()) {
+      return res.status(503).json({
+        success: false,
+        error: {
+          code: 'AI_SERVICE_UNAVAILABLE',
+          message: 'OpenAI service is not configured. Please set OPENAI_API_KEY environment variable.'
+        }
+      });
+    }
 
-This content has been tailored to approximately ${contentLength} words${targetTone ? ` with a ${targetTone.join(' and ')} tone` : ''}${keywords ? `. Key topics covered include: ${keywords.join(', ')}.` : '.'}
-
-This is a mock response that demonstrates the AI content generation functionality. In a production environment, this would be replaced with actual AI-generated content from OpenAI or similar services.`;
-
-    const mockResponse = {
-      success: true,
-      data: {
-        generatedContent: mockContent,
-        alternatives: [
-          `Alternative approach: ${baseContent} - Here's a different perspective that focuses on practical applications and real-world examples.`,
-          `Creative variation: ${baseContent} - This version emphasizes storytelling and emotional connection with your audience.`,
-          `Technical focus: ${baseContent} - A more detailed, data-driven approach with specific insights and actionable recommendations.`
-        ]
+    // Prepare request for OpenAI service
+    const openAIRequest = {
+      type: type as 'complete' | 'continue' | 'rewrite' | 'improve' | 'adapt',
+      context: {
+        prompt: prompt || context || 'Generate content',
+        existingContent: text,
+        targetLength: targetLength,
+        targetTone: targetTone,
+        keywords: keywords
+      },
+      options: {
+        maxTokens: req.body.options?.maxTokens || Math.min(4000, (targetLength || 500) * 2),
+        temperature: req.body.options?.temperature || 0.7
       }
     };
 
-    res.json(mockResponse);
+    const result = await openAIService.generateContent(openAIRequest);
+    
+    if (!result.success) {
+      console.error('OpenAI generation failed:', result.error);
+      return res.status(500).json({
+        success: false,
+        error: result.error
+      });
+    }
+
+    // Generate alternatives by calling OpenAI multiple times with different temperatures
+    const alternatives = [];
+    for (let i = 0; i < 2; i++) {
+      try {
+        const altRequest = {
+          ...openAIRequest,
+          options: {
+            ...openAIRequest.options,
+            temperature: 0.8 + (i * 0.1) // Vary temperature for alternatives
+          }
+        };
+        const altResult = await openAIService.generateContent(altRequest);
+        if (altResult.success) {
+          alternatives.push(altResult.data.content);
+        }
+      } catch (error) {
+        console.log('Failed to generate alternative:', error);
+      }
+    }
+
+    const response = {
+      success: true,
+      data: {
+        generatedContent: result.data.content,
+        alternatives: alternatives,
+        usage: result.data.usage,
+        model: result.data.model
+      }
+    };
+
+    res.json(response);
 
   } catch (error) {
     console.error('Error in AI generate endpoint:', error);
@@ -539,34 +588,48 @@ app.post('/api/v1/ai/suggestions', async (req, res) => {
       });
     }
 
-    // Mock suggestions response
-    const mockSuggestions = [
-      {
-        id: 'suggestion-1',
-        type: 'grammar',
-        severity: 'medium',
-        confidence: 0.85,
-        original: 'example text',
-        suggestion: 'improved text',
-        reason: 'This improves clarity and readability',
-        position: { start: 0, end: 10 }
-      },
-      {
-        id: 'suggestion-2', 
-        type: 'style',
-        severity: 'low',
-        confidence: 0.75,
-        original: 'another example',
-        suggestion: 'better example',
-        reason: 'This enhances the writing style',
-        position: { start: 20, end: 30 }
-      }
-    ];
+    // Use OpenAI service for writing suggestions
+    if (!openAIService.isReady()) {
+      return res.status(503).json({
+        success: false,
+        error: {
+          code: 'AI_SERVICE_UNAVAILABLE',
+          message: 'OpenAI service is not configured. Please set OPENAI_API_KEY environment variable.'
+        }
+      });
+    }
+
+    const result = await openAIService.getWritingSuggestions({
+      content: content
+    });
+
+    if (!result.success) {
+      console.error('OpenAI suggestions failed:', result.error);
+      return res.status(500).json({
+        success: false,
+        error: result.error
+      });
+    }
+
+    // Convert OpenAI suggestions to frontend format
+    const suggestions = result.data.suggestions?.map((suggestion: any, index: number) => ({
+      id: `suggestion-${index + 1}`,
+      type: suggestion.type || 'style',
+      severity: suggestion.severity || 'medium',
+      confidence: 0.8, // OpenAI doesn't provide confidence, use default
+      original: suggestion.issue || 'content section',
+      suggestion: suggestion.suggestion,
+      reason: suggestion.issue,
+      position: { start: index * 10, end: (index + 1) * 10 } // Mock positions since we don't have text analysis
+    })) || [];
 
     res.json({
       success: true,
       data: {
-        suggestions: mockSuggestions
+        suggestions: suggestions,
+        overallScore: result.data.overallScore || 7,
+        summary: result.data.summary || 'Content analysis completed',
+        usage: result.data.usage
       }
     });
 
@@ -597,18 +660,59 @@ app.post('/api/v1/ai/adapt', async (req, res) => {
       });
     }
 
-    // Mock adaptation response
-    const adaptedContent = {};
-    targetFormats.forEach(format => {
-      adaptedContent[format.format] = {
-        content: `${originalText} - Adapted for ${format.format} format with specific constraints and optimization.`,
-        metadata: {
-          format: format.format,
-          wordCount: 150,
-          readabilityScore: 8.5
+    // Use OpenAI service for content adaptation
+    if (!openAIService.isReady()) {
+      return res.status(503).json({
+        success: false,
+        error: {
+          code: 'AI_SERVICE_UNAVAILABLE',
+          message: 'OpenAI service is not configured. Please set OPENAI_API_KEY environment variable.'
         }
-      };
-    });
+      });
+    }
+
+    const adaptedContent = {};
+    
+    // Adapt content for each target format
+    for (const format of targetFormats) {
+      try {
+        const result = await openAIService.adaptContent({
+          content: originalText,
+          targetFormat: format.format,
+          customConstraints: format.constraints || {}
+        });
+
+        if (result.success) {
+          adaptedContent[format.format] = {
+            content: result.data.adaptedContent,
+            metadata: {
+              format: format.format,
+              originalFormat: result.data.originalFormat,
+              wordCount: result.data.adaptedContent.split(' ').length,
+              usage: result.data.usage
+            }
+          };
+        } else {
+          console.error(`Failed to adapt to ${format.format}:`, result.error);
+          adaptedContent[format.format] = {
+            content: `Failed to adapt content for ${format.format}: ${result.error?.message}`,
+            metadata: {
+              format: format.format,
+              error: true
+            }
+          };
+        }
+      } catch (error) {
+        console.error(`Error adapting to ${format.format}:`, error);
+        adaptedContent[format.format] = {
+          content: `Error adapting content for ${format.format}`,
+          metadata: {
+            format: format.format,
+            error: true
+          }
+        };
+      }
+    }
 
     res.json({
       success: true,
@@ -633,35 +737,9 @@ app.post('/api/v1/ai/adapt', async (req, res) => {
 // AI Adaptation Formats endpoint
 app.get('/api/v1/ai/adapt/formats', async (req, res) => {
   try {
-    const availableFormats = [
-      { 
-        id: 'blog-post',
-        name: 'Blog Post',
-        description: 'Long-form blog content with engaging introduction and conclusion'
-      },
-      {
-        id: 'social-media',
-        name: 'Social Media Post', 
-        description: 'Short, engaging content optimized for social platforms'
-      },
-      {
-        id: 'email-newsletter',
-        name: 'Email Newsletter',
-        description: 'Email-friendly format with clear subject and call-to-action'
-      },
-      {
-        id: 'product-description',
-        name: 'Product Description',
-        description: 'Sales-focused content highlighting features and benefits'
-      }
-    ];
-
-    res.json({
-      success: true,
-      data: {
-        formats: availableFormats
-      }
-    });
+    // Use OpenAI service for available formats
+    const result = openAIService.getAvailableFormats();
+    res.json(result);
 
   } catch (error) {
     console.error('Error in AI formats endpoint:', error);
