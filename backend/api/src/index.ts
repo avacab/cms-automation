@@ -197,27 +197,209 @@ app.get('/api/v1/content/:id', (req, res) => {
 });
 
 // Create new content item
-app.post('/api/v1/content', (req, res) => {
-  res.status(501).json({
-    error: 'Not Implemented',
-    message: 'Content creation temporarily disabled during configuration'
-  });
+app.post('/api/v1/content', async (req, res) => {
+  try {
+    if (!supabase) {
+      throw new Error('Supabase not configured');
+    }
+
+    const { content } = req.body;
+    
+    if (!content) {
+      return res.status(400).json({
+        error: 'Bad Request',
+        message: 'Content data is required'
+      });
+    }
+
+    // Validate required fields
+    if (!content.title || !content.content) {
+      return res.status(400).json({
+        error: 'Validation Error',
+        message: 'Title and content are required fields'
+      });
+    }
+
+    // Generate slug from title if not provided
+    const slug = content.slug || content.title.toLowerCase()
+      .replace(/[^a-z0-9\s-]/g, '')
+      .replace(/\s+/g, '-')
+      .trim();
+
+    // Prepare content data for insertion
+    const contentData = {
+      title: content.title,
+      slug: slug,
+      content: typeof content.content === 'string' ? content.content : JSON.stringify(content.content),
+      status: content.status || 'draft',
+      content_type_id: content.content_type_id || null,
+      meta_description: content.meta_description || null,
+      featured_image: content.featured_image || null,
+      published_at: content.status === 'published' ? new Date().toISOString() : null,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      created_by: null,
+      updated_by: null
+    };
+
+    const { data, error } = await supabase
+      .from('content')
+      .insert([contentData])
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Supabase error creating content:', error);
+      return res.status(500).json({
+        error: 'Database Error',
+        message: error.message || 'Failed to create content'
+      });
+    }
+
+    res.status(201).json({
+      success: true,
+      data: data
+    });
+
+  } catch (error) {
+    console.error('Error creating content:', error);
+    res.status(500).json({
+      error: 'Internal Server Error',
+      message: error instanceof Error ? error.message : 'An unexpected error occurred'
+    });
+  }
 });
 
 // Update content item
-app.put('/api/v1/content/:id', (req, res) => {
-  res.status(501).json({
-    error: 'Not Implemented',
-    message: 'Content updates temporarily disabled during configuration'
-  });
+app.put('/api/v1/content/:id', async (req, res) => {
+  try {
+    if (!supabase) {
+      throw new Error('Supabase not configured');
+    }
+
+    const { id } = req.params;
+    const { content } = req.body;
+    
+    if (!content) {
+      return res.status(400).json({
+        error: 'Bad Request',
+        message: 'Content data is required'
+      });
+    }
+
+    // Validate required fields
+    if (!content.title || !content.content) {
+      return res.status(400).json({
+        error: 'Validation Error',
+        message: 'Title and content are required fields'
+      });
+    }
+
+    // Generate slug from title if not provided
+    const slug = content.slug || content.title.toLowerCase()
+      .replace(/[^a-z0-9\s-]/g, '')
+      .replace(/\s+/g, '-')
+      .trim();
+
+    // Prepare content data for update
+    const contentData = {
+      title: content.title,
+      slug: slug,
+      content: typeof content.content === 'string' ? content.content : JSON.stringify(content.content),
+      status: content.status || 'draft',
+      content_type_id: content.content_type_id || null,
+      meta_description: content.meta_description || null,
+      featured_image: content.featured_image || null,
+      published_at: content.status === 'published' && !content.published_at ? new Date().toISOString() : content.published_at,
+      updated_at: new Date().toISOString(),
+      updated_by: null
+    };
+
+    const { data, error } = await supabase
+      .from('content')
+      .update(contentData)
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Supabase error updating content:', error);
+      return res.status(500).json({
+        error: 'Database Error',
+        message: error.message || 'Failed to update content'
+      });
+    }
+
+    if (!data) {
+      return res.status(404).json({
+        error: 'Not Found',
+        message: 'Content item not found'
+      });
+    }
+
+    res.json({
+      success: true,
+      data: data
+    });
+
+  } catch (error) {
+    console.error('Error updating content:', error);
+    res.status(500).json({
+      error: 'Internal Server Error',
+      message: error instanceof Error ? error.message : 'An unexpected error occurred'
+    });
+  }
 });
 
 // Delete content item
-app.delete('/api/v1/content/:id', (req, res) => {
-  res.status(501).json({
-    error: 'Not Implemented',
-    message: 'Content deletion temporarily disabled during configuration'
-  });
+app.delete('/api/v1/content/:id', async (req, res) => {
+  try {
+    if (!supabase) {
+      throw new Error('Supabase not configured');
+    }
+
+    const { id } = req.params;
+    
+    // First check if the content exists
+    const { data: existingContent, error: fetchError } = await supabase
+      .from('content')
+      .select('id, title')
+      .eq('id', id)
+      .single();
+
+    if (fetchError || !existingContent) {
+      return res.status(404).json({
+        error: 'Not Found',
+        message: 'Content item not found'
+      });
+    }
+
+    // Delete the content
+    const { error } = await supabase
+      .from('content')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      console.error('Supabase error deleting content:', error);
+      return res.status(500).json({
+        error: 'Database Error',
+        message: error.message || 'Failed to delete content'
+      });
+    }
+
+    res.json({
+      success: true,
+      message: `Content "${existingContent.title}" deleted successfully`
+    });
+
+  } catch (error) {
+    console.error('Error deleting content:', error);
+    res.status(500).json({
+      error: 'Internal Server Error',
+      message: error instanceof Error ? error.message : 'An unexpected error occurred'
+    });
+  }
 });
 
 // Content types endpoint
