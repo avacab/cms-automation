@@ -469,8 +469,6 @@ app.get('/api/v1/plugins', (req, res) => {
 // AI Generation endpoint (temporarily disabled)
 app.post('/api/v1/ai/generate', async (req, res) => {
   try {
-    console.log('AI Generate request:', JSON.stringify(req.body, null, 2));
-    
     // Handle both flat structure and frontend's nested structure
     const prompt = req.body.prompt || req.body.content?.prompt || req.body.input?.prompt;
     const text = req.body.text || req.body.content?.text || req.body.input?.text;
@@ -479,8 +477,6 @@ app.post('/api/v1/ai/generate', async (req, res) => {
     const keywords = req.body.keywords || req.body.options?.keywords;
     const targetLength = req.body.options?.targetLength;
     const targetTone = req.body.options?.targetTone;
-    
-    console.log('Extracted values:', { prompt, text, context, type, keywords, targetLength, targetTone });
     
     if (!prompt && !text) {
       return res.status(400).json({
