@@ -36,24 +36,29 @@ export default function ContentCard({ content, onClick }: ContentCardProps) {
         {/* Header with title and status */}
         <div className="flex justify-between items-start mb-4">
           <h3 className="text-xl font-semibold text-gray-900 line-clamp-2">
-            {content.title}
+            {typeof content.title === 'string' ? content.title : 'Untitled'}
           </h3>
           <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(content.status)}`}>
-            {content.status}
+            {typeof content.status === 'string' ? content.status : 'unknown'}
           </span>
         </div>
 
         {/* Content preview */}
         <p className="text-gray-600 text-sm mb-4 line-clamp-3">
-          {content.content}
+          {typeof content.content === 'string' 
+            ? content.content 
+            : typeof content.content === 'object' && content.content !== null
+              ? JSON.stringify(content.content)
+              : content.excerpt || 'No content preview available'
+          }
         </p>
 
         {/* Metadata */}
         <div className="flex justify-between items-center text-sm text-gray-500">
           <div className="flex items-center space-x-4">
-            <span>ID: {content.id}</span>
+            <span>ID: {typeof content.id === 'string' || typeof content.id === 'number' ? content.id : 'N/A'}</span>
             <span>•</span>
-            <span>/{content.slug}</span>
+            <span>/{typeof content.slug === 'string' ? content.slug : 'no-slug'}</span>
           </div>
           <time dateTime={content.created_at}>
             {formatDate(content.created_at)}

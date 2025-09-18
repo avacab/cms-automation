@@ -513,10 +513,10 @@ const OptimizelyBlogEditor: React.FC<OptimizelyBlogEditorProps> = ({
                       </div>
                       
                       <div className="text-sm text-gray-600 mb-2">
-                        <strong>Title:</strong> {variation.title}
+                        <strong>Title:</strong> {typeof variation.title === 'string' ? variation.title : 'Untitled'}
                       </div>
                       <div className="text-sm text-gray-600">
-                        <strong>Excerpt:</strong> {variation.excerpt}
+                        <strong>Excerpt:</strong> {typeof variation.excerpt === 'string' ? variation.excerpt : 'No excerpt'}
                       </div>
                     </div>
                   ))}

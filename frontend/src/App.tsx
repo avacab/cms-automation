@@ -346,8 +346,12 @@ function ContentPage() {
                   >
                     <div className="flex justify-between items-start">
                       <div className="flex-1">
-                        <h4 className="text-sm font-medium text-gray-900">{item.title}</h4>
-                        <p className="text-sm text-gray-500 mt-1">/{item.slug}</p>
+                        <h4 className="text-sm font-medium text-gray-900">
+                          {typeof item.title === 'string' ? item.title : 'Untitled'}
+                        </h4>
+                        <p className="text-sm text-gray-500 mt-1">
+                          /{typeof item.slug === 'string' ? item.slug : 'no-slug'}
+                        </p>
                       </div>
                       <div className="flex items-center space-x-2">
                         <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
@@ -355,7 +359,7 @@ function ContentPage() {
                             ? 'bg-green-100 text-green-800' 
                             : 'bg-yellow-100 text-yellow-800'
                         }`}>
-                          {item.status}
+                          {typeof item.status === 'string' ? item.status : 'unknown'}
                         </span>
                       </div>
                     </div>
@@ -377,20 +381,31 @@ function ContentPage() {
                 <div className="space-y-4">
                   <div>
                     <label className="text-sm font-medium text-gray-500">Title</label>
-                    <p className="text-sm text-gray-900">{selectedContent.title}</p>
+                    <p className="text-sm text-gray-900">
+                      {typeof selectedContent.title === 'string' ? selectedContent.title : 'Untitled'}
+                    </p>
                   </div>
                   <div>
                     <label className="text-sm font-medium text-gray-500">Slug</label>
-                    <p className="text-sm text-gray-900">/{selectedContent.slug}</p>
+                    <p className="text-sm text-gray-900">
+                      /{typeof selectedContent.slug === 'string' ? selectedContent.slug : 'no-slug'}
+                    </p>
                   </div>
                   <div>
                     <label className="text-sm font-medium text-gray-500">Status</label>
-                    <p className="text-sm text-gray-900">{selectedContent.status}</p>
+                    <p className="text-sm text-gray-900">
+                      {typeof selectedContent.status === 'string' ? selectedContent.status : 'unknown'}
+                    </p>
                   </div>
                   <div>
                     <label className="text-sm font-medium text-gray-500">Content</label>
                     <div className="text-sm text-gray-900 bg-gray-50 p-3 rounded-md max-h-32 overflow-y-auto">
-                      {selectedContent.content}
+                      {typeof selectedContent.content === 'string' 
+                        ? selectedContent.content 
+                        : typeof selectedContent.content === 'object' && selectedContent.content !== null
+                          ? JSON.stringify(selectedContent.content, null, 2)
+                          : 'No content available'
+                      }
                     </div>
                   </div>
                   <div>
@@ -988,7 +1003,9 @@ function PluginsPage() {
             
             <div className="inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
               <div className="flex justify-between items-start mb-4">
-                <h3 className="text-lg font-medium text-gray-900">{selectedPlugin.name}</h3>
+                <h3 className="text-lg font-medium text-gray-900">
+                  {typeof selectedPlugin.name === 'string' ? selectedPlugin.name : 'Unnamed Plugin'}
+                </h3>
                 <button
                   onClick={() => setSelectedPlugin(null)}
                   className="text-gray-400 hover:text-gray-500"
@@ -1002,21 +1019,29 @@ function PluginsPage() {
               
               <div className="space-y-4">
                 <div>
-                  <p className="text-sm text-gray-600">{selectedPlugin.description}</p>
+                  <p className="text-sm text-gray-600">
+                    {typeof selectedPlugin.description === 'string' ? selectedPlugin.description : 'No description available'}
+                  </p>
                 </div>
                 
                 <div className="grid grid-cols-2 gap-4 text-sm">
                   <div>
                     <span className="font-medium text-gray-500">Version:</span>
-                    <p className="text-gray-900">{selectedPlugin.version}</p>
+                    <p className="text-gray-900">
+                      {typeof selectedPlugin.version === 'string' ? selectedPlugin.version : 'Unknown'}
+                    </p>
                   </div>
                   <div>
                     <span className="font-medium text-gray-500">Type:</span>
-                    <p className="text-gray-900 capitalize">{selectedPlugin.type}</p>
+                    <p className="text-gray-900 capitalize">
+                      {typeof selectedPlugin.type === 'string' ? selectedPlugin.type : 'unknown'}
+                    </p>
                   </div>
                   <div>
                     <span className="font-medium text-gray-500">Status:</span>
-                    <p className="text-gray-900 capitalize">{selectedPlugin.status}</p>
+                    <p className="text-gray-900 capitalize">
+                      {typeof selectedPlugin.status === 'string' ? selectedPlugin.status : 'unknown'}
+                    </p>
                   </div>
                   <div>
                     <span className="font-medium text-gray-500">Author:</span>

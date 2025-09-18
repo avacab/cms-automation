@@ -247,13 +247,19 @@ const AIWritingAssistant: React.FC<AIWritingAssistantProps> = ({
                     </div>
                     
                     <div className="mb-3">
-                      <p className="text-sm mb-2">{suggestion.reason}</p>
+                      <p className="text-sm mb-2">
+                        {typeof suggestion.reason === 'string' ? suggestion.reason : 'No reason provided'}
+                      </p>
                       <div className="bg-white bg-opacity-50 p-2 rounded text-xs">
                         <div className="mb-1">
-                          <span className="font-medium">Original:</span> "{suggestion.original}"
+                          <span className="font-medium">Original:</span> "
+                          {typeof suggestion.original === 'string' ? suggestion.original : 'N/A'}
+                          "
                         </div>
                         <div>
-                          <span className="font-medium">Suggested:</span> "{suggestion.suggestion}"
+                          <span className="font-medium">Suggested:</span> "
+                          {typeof suggestion.suggestion === 'string' ? suggestion.suggestion : 'N/A'}
+                          "
                         </div>
                       </div>
                     </div>
