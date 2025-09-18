@@ -220,10 +220,12 @@ app.post('/api/v1/content', async (req, res) => {
       });
     }
 
-    // Note: slug generation removed as 'slug' column doesn't exist in content_items table
+    // Generate a unique ID for the content
+    const contentId = content.id || `content-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
     // Prepare content data for insertion
     const contentData = {
+      id: contentId,
       title: content.title,
       content: typeof content.content === 'string' ? content.content : JSON.stringify(content.content),
       status: content.status || 'draft',
