@@ -469,7 +469,6 @@ app.get('/api/v1/plugins', (req, res) => {
 // AI Generation endpoint (temporarily disabled)
 app.post('/api/v1/ai/generate', async (req, res) => {
   try {
-    console.log('AI Generate request body:', JSON.stringify(req.body, null, 2));
     
     // Handle both flat structure and frontend's nested structure
     const prompt = req.body.prompt || req.body.content?.prompt;
