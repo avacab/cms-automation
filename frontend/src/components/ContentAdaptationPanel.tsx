@@ -57,7 +57,8 @@ const ContentAdaptationPanel: React.FC<ContentAdaptationPanelProps> = ({
 
   const fetchAvailableFormats = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/v1/ai/adapt/formats');
+      const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+      const response = await fetch(`${API_BASE_URL}/api/v1/ai/adapt/formats`);
       if (response.ok) {
         const data = await response.json();
         setAvailableFormats(data.data.formats || []);
@@ -110,7 +111,8 @@ const ContentAdaptationPanel: React.FC<ContentAdaptationPanelProps> = ({
         constraints: customConstraints[format] || {}
       }));
 
-      const response = await fetch('http://localhost:5000/api/v1/ai/adapt', {
+      const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+      const response = await fetch(`${API_BASE_URL}/api/v1/ai/adapt`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
