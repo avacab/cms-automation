@@ -160,40 +160,14 @@ export const pluginService = {
 
   // Activate plugin
   async activatePlugin(id: string): Promise<{ success: boolean; message: string }> {
-    try {
-      const response = await api.post(`/api/v1/plugins/${id}/activate`);
-      return response.data;
-    } catch (error: any) {
-      // Temporary fallback until API is deployed
-      if (error.response?.status === 404) {
-        console.warn('Plugin activation endpoint not deployed yet, using temporary simulation');
-        await new Promise(resolve => setTimeout(resolve, 500)); // Simulate network delay
-        return { 
-          success: true, 
-          message: `Plugin '${id}' activated successfully (simulated - awaiting API deployment)` 
-        };
-      }
-      throw error;
-    }
+    const response = await api.post(`/api/v1/plugins/${id}/activate`);
+    return response.data;
   },
 
   // Deactivate plugin
   async deactivatePlugin(id: string): Promise<{ success: boolean; message: string }> {
-    try {
-      const response = await api.post(`/api/v1/plugins/${id}/deactivate`);
-      return response.data;
-    } catch (error: any) {
-      // Temporary fallback until API is deployed
-      if (error.response?.status === 404) {
-        console.warn('Plugin deactivation endpoint not deployed yet, using temporary simulation');
-        await new Promise(resolve => setTimeout(resolve, 500)); // Simulate network delay
-        return { 
-          success: true, 
-          message: `Plugin '${id}' deactivated successfully (simulated - awaiting API deployment)` 
-        };
-      }
-      throw error;
-    }
+    const response = await api.post(`/api/v1/plugins/${id}/deactivate`);
+    return response.data;
   },
 
   // Configure plugin
