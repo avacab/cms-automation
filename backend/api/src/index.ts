@@ -220,11 +220,7 @@ app.post('/api/v1/content', async (req, res) => {
       });
     }
 
-    // Generate slug from title if not provided
-    const slug = content.slug || content.title.toLowerCase()
-      .replace(/[^a-z0-9\s-]/g, '')
-      .replace(/\s+/g, '-')
-      .trim();
+    // Note: slug generation removed as 'slug' column doesn't exist in content_items table
 
     // Prepare content data for insertion
     const contentData = {
@@ -292,11 +288,7 @@ app.put('/api/v1/content/:id', async (req, res) => {
       });
     }
 
-    // Generate slug from title if not provided
-    const slug = content.slug || content.title.toLowerCase()
-      .replace(/[^a-z0-9\s-]/g, '')
-      .replace(/\s+/g, '-')
-      .trim();
+    // Note: slug generation removed as 'slug' column doesn't exist in content_items table
 
     // Prepare content data for update
     const contentData = {
