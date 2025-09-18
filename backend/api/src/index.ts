@@ -457,14 +457,90 @@ app.get('/api/v1/plugins', (req, res) => {
         name: 'Optimizely Integration',
         description: 'Content optimization and A/B testing',
         status: 'available',
-        enabled: false
+        enabled: false,
+        version: '1.0.0',
+        author: 'CMS Team',
+        type: 'marketing'
       },
       {
         id: 'wordpress',
         name: 'WordPress Integration', 
-        description: 'Publish content to WordPress',
+        description: 'Publish content to WordPress sites',
         status: 'available',
-        enabled: false
+        enabled: false,
+        version: '1.0.0',
+        author: 'CMS Team',
+        type: 'publishing'
+      },
+      {
+        id: 'drupal',
+        name: 'Drupal Integration',
+        description: 'Headless CMS bridge for Drupal sites',
+        status: 'available',
+        enabled: false,
+        version: '1.0.0',
+        author: 'CMS Team',
+        type: 'publishing'
+      },
+      {
+        id: 'shopify',
+        name: 'Shopify Integration',
+        description: 'E-commerce content sync with Shopify',
+        status: 'available',
+        enabled: false,
+        version: '1.0.0',
+        author: 'CMS Team',
+        type: 'ecommerce'
+      },
+      {
+        id: 'wix',
+        name: 'Wix Plugin',
+        description: 'AI-powered content enhancement for Wix',
+        status: 'available',
+        enabled: false,
+        version: '1.0.0',
+        author: 'CMS Team',
+        type: 'website-builder'
+      },
+      {
+        id: 'ai-writing-assistant',
+        name: 'AI Writing Assistant',
+        description: 'Advanced AI-powered content generation and optimization',
+        status: 'active',
+        enabled: true,
+        version: '1.2.0',
+        author: 'CMS Team',
+        type: 'ai-tools'
+      },
+      {
+        id: 'seo-optimizer',
+        name: 'SEO Optimization',
+        description: 'Automated SEO analysis and content optimization',
+        status: 'available',
+        enabled: false,
+        version: '1.0.0',
+        author: 'CMS Team',
+        type: 'seo'
+      },
+      {
+        id: 'content-adaptation',
+        name: 'Content Adaptation',
+        description: 'Multi-format content transformation and adaptation',
+        status: 'active',
+        enabled: true,
+        version: '1.1.0',
+        author: 'CMS Team',
+        type: 'transformation'
+      },
+      {
+        id: 'media-manager',
+        name: 'Media Management',
+        description: 'Advanced media library and asset management',
+        status: 'available',
+        enabled: false,
+        version: '1.0.0',
+        author: 'CMS Team',
+        type: 'media'
       }
     ]
   });
