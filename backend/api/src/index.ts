@@ -234,7 +234,7 @@ app.post('/api/v1/content', async (req, res) => {
       title: content.title,
       content: typeof content.content === 'string' ? content.content : JSON.stringify(content.content),
       status: content.status || 'draft',
-      content_type_id: content.content_type_id || null,
+      content_type_id: content.content_type_id || 'generic',
       published_at: content.status === 'published' ? new Date().toISOString() : null,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
@@ -306,7 +306,7 @@ app.put('/api/v1/content/:id', async (req, res) => {
       title: content.title,
       content: typeof content.content === 'string' ? content.content : JSON.stringify(content.content),
       status: content.status || 'draft',
-      content_type_id: content.content_type_id || null,
+      content_type_id: content.content_type_id || 'generic',
       published_at: content.status === 'published' && !content.published_at ? new Date().toISOString() : content.published_at,
       updated_at: new Date().toISOString(),
       updated_by: null
