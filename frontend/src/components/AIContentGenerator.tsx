@@ -106,11 +106,18 @@ const AIContentGenerator: React.FC<AIContentGeneratorProps> = ({
 
       if (response.ok) {
         const data = await response.json();
-        const result = data.data;
-        setGeneratedContent(result.text);
-        setAlternatives(result.alternatives || []);
+        console.log('AI Response:', data); // Debug log
+        if (data.success && data.data) {
+          const result = data.data;
+          setGeneratedContent(result.generatedContent || result.text || '');
+          setAlternatives(result.alternatives || []);
+        } else {
+          throw new Error('Invalid response format');
+        }
       } else {
-        throw new Error('Failed to generate content');
+        const errorData = await response.json().catch(() => ({}));
+        console.error('API Error:', errorData);
+        throw new Error(`API Error: ${response.status} ${response.statusText}`);
       }
     } catch (error) {
       console.error('Error generating content:', error);
