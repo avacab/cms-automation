@@ -523,9 +523,28 @@ app.post('/api/v1/ai/generate', async (req, res) => {
     
     if (!result.success) {
       console.error('OpenAI generation failed:', result.error);
-      return res.status(500).json({
+      
+      // Return appropriate HTTP status codes based on error type
+      let statusCode = 500;
+      let userMessage = 'An error occurred while generating content';
+      
+      if (result.error?.code === 'OPENAI_API_ERROR') {
+        if (result.error.message?.includes('401') || result.error.message?.includes('invalid_api_key')) {
+          statusCode = 503;
+          userMessage = 'AI service is currently unavailable. Please contact support if this persists.';
+        } else if (result.error.message?.includes('429') || result.error.message?.includes('rate_limit')) {
+          statusCode = 429;
+          userMessage = 'AI service is temporarily overloaded. Please try again in a moment.';
+        }
+      }
+      
+      return res.status(statusCode).json({
         success: false,
-        error: result.error
+        error: {
+          code: result.error?.code || 'AI_GENERATION_ERROR',
+          message: userMessage,
+          details: process.env.NODE_ENV === 'development' ? result.error : undefined
+        }
       });
     }
 

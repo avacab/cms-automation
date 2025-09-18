@@ -126,11 +126,23 @@ const AIContentGenerator: React.FC<AIContentGeneratorProps> = ({
       } else {
         const errorData = await response.json().catch(() => ({}));
         console.error('API Error:', errorData);
-        throw new Error(`API Error: ${response.status} ${response.statusText}`);
+        
+        // Show user-friendly error messages based on status code
+        let errorMessage = 'Failed to generate content. Please try again.';
+        
+        if (response.status === 503) {
+          errorMessage = 'AI service is currently unavailable. Please try again later or contact support.';
+        } else if (response.status === 429) {
+          errorMessage = 'AI service is temporarily overloaded. Please wait a moment and try again.';
+        } else if (errorData.error?.message) {
+          errorMessage = errorData.error.message;
+        }
+        
+        throw new Error(errorMessage);
       }
     } catch (error) {
       console.error('Error generating content:', error);
-      alert('Failed to generate content. Please try again.');
+      alert(error instanceof Error ? error.message : 'Failed to generate content. Please try again.');
     } finally {
       setIsGenerating(false);
     }
