@@ -528,14 +528,18 @@ app.post('/api/v1/ai/generate', async (req, res) => {
       let statusCode = 500;
       let userMessage = 'An error occurred while generating content';
       
-      if (result.error?.code === 'OPENAI_API_ERROR') {
-        if (result.error.message?.includes('401') || result.error.message?.includes('invalid_api_key')) {
-          statusCode = 503;
-          userMessage = 'AI service is currently unavailable. Please contact support if this persists.';
-        } else if (result.error.message?.includes('429') || result.error.message?.includes('rate_limit')) {
-          statusCode = 429;
-          userMessage = 'AI service is temporarily overloaded. Please try again in a moment.';
-        }
+      if (result.error?.code === 'INVALID_API_KEY') {
+        statusCode = 503;
+        userMessage = 'AI service is currently unavailable. Please contact support if this persists.';
+      } else if (result.error?.code === 'RATE_LIMITED') {
+        statusCode = 429;
+        userMessage = 'AI service is temporarily overloaded. Please try again in a moment.';
+      } else if (result.error?.code === 'ACCESS_DENIED') {
+        statusCode = 403;
+        userMessage = 'AI service access is restricted. Please contact support.';
+      } else if (result.error?.code === 'OPENAI_API_ERROR') {
+        statusCode = 503;
+        userMessage = 'AI service is temporarily unavailable. Please try again later.';
       }
       
       return res.status(statusCode).json({

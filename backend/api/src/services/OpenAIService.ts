@@ -134,11 +134,30 @@ export class OpenAIService {
 
     } catch (error: any) {
       console.error('OpenAI API error:', error);
+      
+      // Extract useful information from OpenAI errors
+      let errorCode = 'OPENAI_API_ERROR';
+      let errorMessage = 'OpenAI API error occurred';
+      
+      if (error.status === 401) {
+        errorCode = 'INVALID_API_KEY';
+        errorMessage = 'OpenAI API key is invalid or expired';
+      } else if (error.status === 429) {
+        errorCode = 'RATE_LIMITED';
+        errorMessage = 'OpenAI API rate limit exceeded';
+      } else if (error.status === 403) {
+        errorCode = 'ACCESS_DENIED';
+        errorMessage = 'Access denied by OpenAI API';
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
       return {
         success: false,
         error: {
-          code: 'OPENAI_API_ERROR',
-          message: error.message || 'Unknown OpenAI API error',
+          code: errorCode,
+          message: errorMessage,
+          status: error.status,
           details: error.response?.data || error
         }
       };
@@ -221,11 +240,26 @@ export class OpenAIService {
 
     } catch (error: any) {
       console.error('OpenAI suggestions error:', error);
+      
+      let errorCode = 'OPENAI_API_ERROR';
+      let errorMessage = 'Failed to get writing suggestions';
+      
+      if (error.status === 401) {
+        errorCode = 'INVALID_API_KEY';
+        errorMessage = 'OpenAI API key is invalid or expired';
+      } else if (error.status === 429) {
+        errorCode = 'RATE_LIMITED';
+        errorMessage = 'OpenAI API rate limit exceeded';
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
       return {
         success: false,
         error: {
-          code: 'OPENAI_API_ERROR',
-          message: error.message || 'Failed to get writing suggestions',
+          code: errorCode,
+          message: errorMessage,
+          status: error.status,
           details: error.response?.data || error
         }
       };
@@ -293,11 +327,26 @@ export class OpenAIService {
 
     } catch (error: any) {
       console.error('OpenAI adaptation error:', error);
+      
+      let errorCode = 'OPENAI_API_ERROR';
+      let errorMessage = 'Failed to adapt content';
+      
+      if (error.status === 401) {
+        errorCode = 'INVALID_API_KEY';
+        errorMessage = 'OpenAI API key is invalid or expired';
+      } else if (error.status === 429) {
+        errorCode = 'RATE_LIMITED';  
+        errorMessage = 'OpenAI API rate limit exceeded';
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
       return {
         success: false,
         error: {
-          code: 'OPENAI_API_ERROR',
-          message: error.message || 'Failed to adapt content',
+          code: errorCode,
+          message: errorMessage,
+          status: error.status,
           details: error.response?.data || error
         }
       };
