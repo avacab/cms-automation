@@ -8,6 +8,8 @@ import LoadingSpinner from './components/LoadingSpinner'
 import ErrorDisplay from './components/ErrorDisplay'
 import ContentForm from './components/ContentForm'
 import LandingPage from './components/LandingPage'
+import DebugErrorBoundary from './components/DebugErrorBoundary'
+import DebugPage from './components/DebugPage'
 import { ContentItem, Plugin, contentService } from './services/api'
 import './App.css'
 
@@ -57,20 +59,29 @@ function App() {
                 >
                   API Status
                 </Link>
+                <Link 
+                  to="/debug" 
+                  className="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
+                >
+                  🔍 Debug
+                </Link>
               </nav>
             </div>
           </div>
         </header>
         
         <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-          <Routes>
-            <Route path="/" element={<LandingPage />} />
-            <Route path="/home" element={<HomePage />} />
-            <Route path="/content" element={<ContentPage />} />
-            <Route path="/plugins" element={<PluginsPage />} />
-            <Route path="/plugins/:id" element={<PluginDetailPage />} />
-            <Route path="/api-status" element={<ApiStatusPage />} />
-          </Routes>
+          <DebugErrorBoundary>
+            <Routes>
+              <Route path="/" element={<LandingPage />} />
+              <Route path="/home" element={<HomePage />} />
+              <Route path="/content" element={<ContentPage />} />
+              <Route path="/plugins" element={<PluginsPage />} />
+              <Route path="/plugins/:id" element={<PluginDetailPage />} />
+              <Route path="/api-status" element={<ApiStatusPage />} />
+              <Route path="/debug" element={<DebugPage />} />
+            </Routes>
+          </DebugErrorBoundary>
         </main>
       </div>
     </Router>
@@ -420,15 +431,21 @@ function ContentPage() {
             </div>
             <div className="px-6 py-4">
               <div className="space-y-3">
-                {contentTypes.map((type) => (
-                  <div key={type.id} className="border border-gray-200 rounded-md p-3">
-                    <h4 className="text-sm font-medium text-gray-900">{type.name}</h4>
-                    <p className="text-xs text-gray-500">/{type.slug}</p>
-                    <div className="mt-2">
-                      <p className="text-xs text-gray-400">Fields: {type.fields.length}</p>
+                {Array.isArray(contentTypes) && contentTypes.length > 0 ? (
+                  contentTypes.map((type) => (
+                    <div key={type.id || Math.random()} className="border border-gray-200 rounded-md p-3">
+                      <h4 className="text-sm font-medium text-gray-900">{type.name || 'Unnamed Type'}</h4>
+                      <p className="text-xs text-gray-500">/{type.slug || 'no-slug'}</p>
+                      <div className="mt-2">
+                        <p className="text-xs text-gray-400">Fields: {type.fields?.length || (type.schema ? Object.keys(type.schema).length : 0)}</p>
+                      </div>
                     </div>
+                  ))
+                ) : (
+                  <div className="text-sm text-gray-500 text-center py-4">
+                    {Array.isArray(contentTypes) ? 'No content types found' : 'Loading content types...'}
                   </div>
-                ))}
+                )}
               </div>
             </div>
           </div>

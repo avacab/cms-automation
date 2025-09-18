@@ -39,9 +39,10 @@ export interface ContentItem {
 export interface ContentType {
   id: string;
   name: string;
-  slug: string;
+  slug?: string;
   description?: string;
-  fields: Array<{
+  // Support both legacy fields array and new schema object structure
+  fields?: Array<{
     name: string;
     type: 'text' | 'textarea' | 'richtext' | 'number' | 'boolean' | 'date' | 'image' | 'select';
     label: string;
@@ -49,8 +50,14 @@ export interface ContentType {
     options?: string[];
     validation?: Record<string, any>;
   }>;
-  created_at: string;
-  updated_at: string;
+  schema?: Record<string, {
+    type: string;
+    required?: boolean;
+    [key: string]: any;
+  }>;
+  is_active?: boolean;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface Plugin {
