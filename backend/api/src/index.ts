@@ -199,6 +199,8 @@ app.get('/api/v1/content/:id', (req, res) => {
 // Create new content item
 app.post('/api/v1/content', async (req, res) => {
   try {
+    console.log('POST /api/v1/content - Request body:', JSON.stringify(req.body, null, 2));
+    
     if (!supabase) {
       throw new Error('Supabase not configured');
     }
@@ -206,6 +208,7 @@ app.post('/api/v1/content', async (req, res) => {
     const { content } = req.body;
     
     if (!content) {
+      console.log('Error: No content data provided');
       return res.status(400).json({
         error: 'Bad Request',
         message: 'Content data is required'
@@ -214,6 +217,7 @@ app.post('/api/v1/content', async (req, res) => {
 
     // Validate required fields
     if (!content.title || !content.content) {
+      console.log('Validation failed - title:', content.title, 'content:', content.content);
       return res.status(400).json({
         error: 'Validation Error',
         message: 'Title and content are required fields'
@@ -222,6 +226,7 @@ app.post('/api/v1/content', async (req, res) => {
 
     // Generate a unique ID for the content
     const contentId = content.id || `content-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    console.log('Generated content ID:', contentId);
 
     // Prepare content data for insertion
     const contentData = {
@@ -237,11 +242,15 @@ app.post('/api/v1/content', async (req, res) => {
       updated_by: null
     };
 
+    console.log('Content data to insert:', JSON.stringify(contentData, null, 2));
+
     const { data, error } = await supabase
       .from('content_items')
       .insert([contentData])
       .select()
       .single();
+
+    console.log('Supabase response - data:', data, 'error:', error);
 
     if (error) {
       console.error('Supabase error creating content:', error);
