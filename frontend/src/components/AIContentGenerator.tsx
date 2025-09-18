@@ -82,20 +82,30 @@ const AIContentGenerator: React.FC<AIContentGeneratorProps> = ({
       const requestBody = {
         type: generationType,
         input: {
-          prompt: generationType === 'complete' ? prompt : undefined,
-          text: (generationType !== 'complete') ? initialContent : undefined,
           context: getContextForType()
         },
         options: {
-          brandVoiceId: selectedBrandVoice || undefined,
-          templateId: selectedTemplate || undefined,
           maxTokens: Math.min(4000, targetLength * 2),
           temperature,
-          targetLength,
-          targetTone: targetTones.length > 0 ? targetTones : undefined,
-          keywords: keywords ? keywords.split(',').map(k => k.trim()).filter(k => k) : undefined
+          targetLength
         }
       };
+
+      // Add prompt or text based on generation type
+      if (generationType === 'complete' && prompt) {
+        requestBody.input.prompt = prompt;
+      } else if (generationType !== 'complete' && initialContent) {
+        requestBody.input.text = initialContent;
+      }
+
+      // Add optional properties only if they have values
+      if (selectedBrandVoice) requestBody.options.brandVoiceId = selectedBrandVoice;
+      if (selectedTemplate) requestBody.options.templateId = selectedTemplate;
+      if (targetTones.length > 0) requestBody.options.targetTone = targetTones;
+      if (keywords && keywords.trim()) {
+        const keywordArray = keywords.split(',').map(k => k.trim()).filter(k => k);
+        if (keywordArray.length > 0) requestBody.options.keywords = keywordArray;
+      }
 
       const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
       const response = await fetch(`${API_BASE_URL}/api/v1/ai/generate`, {
