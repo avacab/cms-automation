@@ -243,7 +243,7 @@ app.post('/api/v1/content', async (req, res) => {
     };
 
     const { data, error } = await supabase
-      .from('content')
+      .from('content_items')
       .insert([contentData])
       .select()
       .single();
@@ -316,7 +316,7 @@ app.put('/api/v1/content/:id', async (req, res) => {
     };
 
     const { data, error } = await supabase
-      .from('content')
+      .from('content_items')
       .update(contentData)
       .eq('id', id)
       .select()
@@ -362,7 +362,7 @@ app.delete('/api/v1/content/:id', async (req, res) => {
     
     // First check if the content exists
     const { data: existingContent, error: fetchError } = await supabase
-      .from('content')
+      .from('content_items')
       .select('id, title')
       .eq('id', id)
       .single();
@@ -376,7 +376,7 @@ app.delete('/api/v1/content/:id', async (req, res) => {
 
     // Delete the content
     const { error } = await supabase
-      .from('content')
+      .from('content_items')
       .delete()
       .eq('id', id);
 
