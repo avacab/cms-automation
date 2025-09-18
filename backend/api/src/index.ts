@@ -8,6 +8,7 @@ import { createServer } from 'http';
 import { OpenAIService } from './services/OpenAIService.js';
 
 // Load environment variables
+// Force deployment trigger
 dotenv.config();
 
 const app = express();
