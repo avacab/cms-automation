@@ -59,15 +59,18 @@ app.get('/', (req, res) => {
 
 // Import services and routes
 import { createClient } from '@supabase/supabase-js';
-// import { StorageFactory } from './services/StorageFactory.js';
-// import { OpenAIService } from './services/OpenAIService.js';
-// import systemRoutes from './routes/system.js';
-// import optimizelyRoutes from '../routes/optimizely.js';
+import { SupabaseService } from './services/SupabaseService.js';
+import { createAuthRoutes } from './routes/auth.js';
+import { createRBACRoutes } from './routes/rbac.js';
+import { createBillingRoutes } from './routes/billing.js';
+import { AuthService } from './middleware/auth.js';
 
 // Initialize services
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_SERVICE_KEY;
 const supabase = supabaseUrl && supabaseKey ? createClient(supabaseUrl, supabaseKey) : null;
+const supabaseService = supabaseUrl && supabaseKey ? new SupabaseService(supabaseUrl, supabaseKey) : null;
+const authService = supabaseService ? new AuthService(supabaseService) : null;
 // const storageFactory = StorageFactory.getInstance();
 // const openaiService = new OpenAIService();
 
@@ -79,6 +82,13 @@ function generateSlug(title: string): string {
     .replace(/\s+/g, '-')
     .replace(/-+/g, '-')
     .trim();
+}
+
+// Authentication, RBAC, and Billing routes
+if (supabaseService) {
+  app.use('/api/v1/auth', createAuthRoutes(supabaseService));
+  app.use('/api/v1/rbac', createRBACRoutes(supabaseService));
+  app.use('/api/v1/billing', createBillingRoutes(supabaseService));
 }
 
 // Test endpoint
@@ -152,32 +162,39 @@ app.get('/api/v1/debug/supabase', async (req, res) => {
   }
 });
 
-// Content API routes
-app.get('/api/v1/content', async (req, res) => {
+// Content API routes (protected)
+app.get('/api/v1/content', authService?.authenticate || ((req, res, next) => next()), async (req, res) => {
   try {
     if (!supabase) {
       throw new Error('Supabase not configured');
     }
     
-    // Get real data from Supabase
-    const { data, error } = await supabase
+    // Get organization-scoped data if authenticated
+    let query = supabase
       .from('content_items')
       .select('*')
       .order('created_at', { ascending: false });
+    
+    // If authenticated, scope to organization
+    if (req.user && req.organization) {
+      query = query.eq('organization_id', req.organization.id);
+    }
+      
+    const { data, error } = await query;
       
     if (error) {
       throw error;
     }
     
     res.json({
-      message: 'Content endpoint (Supabase data)',
+      success: true,
       data: data || []
     });
   } catch (error) {
     console.error('Supabase error, using sample data:', error);
     // Fallback to sample data
     res.json({
-      message: 'Content endpoint (sample data)',
+      success: true,
       data: [
         { id: '1', title: 'Test Content', status: 'published' }
       ]
@@ -202,7 +219,11 @@ app.get('/api/v1/content/:id', (req, res) => {
 });
 
 // Create new content item
-app.post('/api/v1/content', async (req, res) => {
+app.post('/api/v1/content', 
+  authService?.authenticate || ((req, res, next) => next()),
+  authService?.requireResourcePermission('content_items', 'create') || ((req, res, next) => next()),
+  authService?.checkUsageLimit('content_items') || ((req, res, next) => next()),
+  async (req, res, next) => {
   try {
     if (!supabase) {
       throw new Error('Supabase not configured');
@@ -235,9 +256,10 @@ app.post('/api/v1/content', async (req, res) => {
       content: typeof content.content === 'string' ? content.content : JSON.stringify(content.content),
       status: content.status || 'draft',
       content_type_id: content.content_type_id || 'blog-post',
+      organization_id: req.organization?.id || null,
       published_at: content.status === 'published' ? new Date().toISOString() : null,
-      created_by: null,
-      updated_by: null
+      created_by: req.user?.id || null,
+      updated_by: req.user?.id || null
     };
 
     const { data, error } = await supabase
@@ -258,6 +280,15 @@ app.post('/api/v1/content', async (req, res) => {
       success: true,
       data: data
     });
+
+    // Track usage after successful creation
+    if (authService && req.organization) {
+      try {
+        await authService['usageTracking'].incrementUsage(req.organization.id, 'content_items');
+      } catch (error) {
+        console.error('Error tracking content creation usage:', error);
+      }
+    }
 
   } catch (error) {
     console.error('Error creating content:', error);

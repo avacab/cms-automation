@@ -10,81 +10,152 @@ import ContentForm from './components/ContentForm'
 import LandingPage from './components/LandingPage'
 import DebugErrorBoundary from './components/DebugErrorBoundary'
 import DebugPage from './components/DebugPage'
+import { AuthProvider, useAuth } from './contexts/AuthContext'
+import { AuthPage } from './components/auth/AuthPage'
+import { ProtectedRoute } from './components/auth/ProtectedRoute'
+import { UserMenu } from './components/auth/UserMenu'
 import { ContentItem, Plugin, contentService } from './services/api'
 import './App.css'
 
 function App() {
   return (
-    <Router>
-      <div className="min-h-screen bg-gray-50">
-        <header className="bg-white shadow sticky top-0 z-10">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between items-center py-6">
-              <div>
-                <h1 className="text-3xl font-bold text-gray-900">
-                  Headless CMS Platform
-                </h1>
-                <p className="text-sm text-gray-500 mt-1">
-                  Powered by modern API architecture
-                </p>
-              </div>
-              <nav className="flex space-x-4">
-                <Link 
-                  to="/" 
-                  className="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
-                >
-                  Home
-                </Link>
-                <Link 
-                  to="/home" 
-                  className="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
-                >
-                  Dashboard
-                </Link>
-                <Link 
-                  to="/content" 
-                  className="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
-                >
-                  Content
-                </Link>
-                <Link 
-                  to="/plugins" 
-                  className="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
-                >
-                  Plugins
-                </Link>
-                <Link 
-                  to="/api-status" 
-                  className="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
-                >
-                  API Status
-                </Link>
-                <Link 
-                  to="/debug" 
-                  className="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
-                >
-                  🔍 Debug
-                </Link>
-              </nav>
+    <AuthProvider>
+      <Router>
+        <AppContent />
+      </Router>
+    </AuthProvider>
+  )
+}
+
+function AppContent() {
+  const { isAuthenticated } = useAuth()
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <header className="bg-white shadow sticky top-0 z-10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center py-6">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">
+                CMS Automation
+              </h1>
+              <p className="text-sm text-gray-500 mt-1">
+                AI-powered content management platform
+              </p>
             </div>
+            <nav className="flex items-center space-x-4">
+              {isAuthenticated ? (
+                <>
+                  <Link 
+                    to="/home" 
+                    className="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
+                  >
+                    Dashboard
+                  </Link>
+                  <Link 
+                    to="/content" 
+                    className="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
+                  >
+                    Content
+                  </Link>
+                  <Link 
+                    to="/plugins" 
+                    className="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
+                  >
+                    Plugins
+                  </Link>
+                  <Link 
+                    to="/api-status" 
+                    className="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
+                  >
+                    API Status
+                  </Link>
+                  <Link 
+                    to="/debug" 
+                    className="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
+                  >
+                    🔍 Debug
+                  </Link>
+                  <UserMenu />
+                </>
+              ) : (
+                <>
+                  <Link 
+                    to="/" 
+                    className="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
+                  >
+                    Home
+                  </Link>
+                  <Link 
+                    to="/auth" 
+                    className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700"
+                  >
+                    Sign In
+                  </Link>
+                </>
+              )}
+            </nav>
           </div>
-        </header>
-        
-        <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-          <DebugErrorBoundary>
-            <Routes>
-              <Route path="/" element={<LandingPage />} />
-              <Route path="/home" element={<HomePage />} />
-              <Route path="/content" element={<ContentPage />} />
-              <Route path="/plugins" element={<PluginsPage />} />
-              <Route path="/plugins/:id" element={<PluginDetailPage />} />
-              <Route path="/api-status" element={<ApiStatusPage />} />
-              <Route path="/debug" element={<DebugPage />} />
-            </Routes>
-          </DebugErrorBoundary>
-        </main>
-      </div>
-    </Router>
+        </div>
+      </header>
+      
+      <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+        <DebugErrorBoundary>
+          <Routes>
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/auth" element={<AuthPage />} />
+            <Route 
+              path="/home" 
+              element={
+                <ProtectedRoute>
+                  <HomePage />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/content" 
+              element={
+                <ProtectedRoute requiredPermissions={['content_items.read']}>
+                  <ContentPage />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/plugins" 
+              element={
+                <ProtectedRoute>
+                  <PluginsPage />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/plugins/:id" 
+              element={
+                <ProtectedRoute>
+                  <PluginDetailPage />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/api-status" 
+              element={
+                <ProtectedRoute>
+                  <ApiStatusPage />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/debug" 
+              element={
+                <ProtectedRoute requiredRoles={['owner', 'admin']}>
+                  <DebugPage />
+                </ProtectedRoute>
+              } 
+            />
+          </Routes>
+        </DebugErrorBoundary>
+      </main>
+    </div>
   )
 }
 
