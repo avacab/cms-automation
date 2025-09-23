@@ -68,8 +68,14 @@ class WP_Headless_CMS_Bridge_Content_Sync {
      */
     public function sync_post_to_cms($post_id, $post, $update) {
         
+        // Debug logging
+        error_log("CMS Bridge: sync_post_to_cms called for post ID: $post_id, status: {$post->post_status}, type: {$post->post_type}");
+        
         // Check if sync is enabled
-        if (!get_option('wp_headless_cms_bridge_sync_enabled', false)) {
+        $sync_enabled = get_option('wp_headless_cms_bridge_sync_enabled', false);
+        error_log("CMS Bridge: sync_enabled = " . ($sync_enabled ? 'true' : 'false'));
+        if (!$sync_enabled) {
+            error_log("CMS Bridge: Sync is disabled, skipping");
             return;
         }
 
@@ -84,9 +90,9 @@ class WP_Headless_CMS_Bridge_Content_Sync {
             return;
         }
 
-        // Skip if post is not published (unless we want to sync drafts)
-        if ($post->post_status !== 'publish') {
-            // You might want to sync drafts too, depending on requirements
+        // Skip if post is not published or private (sync both public and private content)
+        if (!in_array($post->post_status, array('publish', 'private'))) {
+            // Skip drafts, auto-drafts, trash, etc. but allow published and private
             return;
         }
 
