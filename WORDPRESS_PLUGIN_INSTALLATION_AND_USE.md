@@ -1,13 +1,13 @@
 # WordPress Plugin Installation and Usage Guide
 
-This comprehensive guide walks you through installing, configuring, and using the CMS Automation Bridge WordPress plugin to synchronize content between your WordPress site and the CMS Automation platform.
+This comprehensive guide walks you through installing, configuring, and using the CMS Automation Bridge WordPress plugin to synchronize content between your WordPress site and the CMS Automation API.
 
 ## Table of Contents
 
 1. [Prerequisites](#prerequisites)
 2. [Installation](#installation)
 3. [Configuration](#configuration)
-4. [Authentication Setup](#authentication-setup)
+4. [API Connection Setup](#api-connection-setup)
 5. [Content Synchronization](#content-synchronization)
 6. [Use Case: Creating and Syncing Content](#use-case-creating-and-syncing-content)
 7. [AI Content Features](#ai-content-features)
@@ -24,10 +24,11 @@ Before installing the CMS Automation Bridge plugin, ensure you have:
 - **WordPress Admin Access**: Administrator role required
 - **SSL Certificate**: HTTPS recommended for secure API communication
 
-### CMS Automation Platform Requirements
-- **Active Account**: Valid account on the CMS Automation platform
-- **Organization Setup**: At least one organization configured
-- **API Access**: Valid authentication credentials
+### CMS Automation API Requirements
+- **Running API Server**: The CMS Automation API must be accessible
+- **API URL**: Know your API server URL (e.g., `https://your-api-domain.com` or `http://localhost:8000` for development)
+- **Network Access**: WordPress server must be able to reach the API
+- **Database Setup**: CMS API server must have proper database schema configured
 
 ### Technical Requirements
 - **Internet Connection**: Required for real-time synchronization
@@ -87,17 +88,19 @@ Before installing the CMS Automation Bridge plugin, ensure you have:
 2. **Plugin Settings Overview**
    The settings page contains several sections:
    - **API Connection Settings**
-   - **Authentication Configuration**
    - **Content Sync Settings**
-   - **AI Features Configuration**
+   - **AI Features Configuration** (if available)
 
 ### API Connection Settings
 
 1. **Set API URL**
    ```
-   API URL: https://cms-automation-api.vercel.app
+   # For development
+   API URL: http://localhost:8000
+   
+   # For production
+   API URL: https://your-api-domain.com
    ```
-   *Note: Use your actual CMS platform API URL*
 
 2. **Test Connection**
    - Click **Test Connection** button
@@ -106,54 +109,61 @@ Before installing the CMS Automation Bridge plugin, ensure you have:
      - API URL is correct
      - Server has internet access
      - No firewall blocking the connection
+     - API server is running
 
-## Authentication Setup
+## API Connection Setup
 
-### Step 1: Obtain CMS Platform Credentials
+### Step 1: Configure API Connection
 
-1. **Login to CMS Platform**
-   - Visit your CMS Automation platform dashboard
-   - Login with your account credentials
+1. **Set API URL**
+   - In WordPress plugin settings, find **API Connection** section
+   - Enter your CMS API URL:
+     - Development: `http://localhost:8000`
+     - Production: `https://your-api-domain.com`
+   - Click **Test Connection** to verify accessibility
 
-2. **Get Organization Information**
-   - Note your organization ID (found in organization settings)
-   - Ensure you have admin or owner permissions
+2. **Verify Connection**
+   - You should see "Connection successful" message
+   - Plugin will test basic endpoints:
+     - `/health` - Server health check
+     - `/api/v1/content-types` - Available content types
+   - If connection fails, check:
+     - API URL is correct and accessible
+     - Server has internet access (if using remote API)
+     - No firewall blocking the connection
+     - API server is running
 
-### Step 2: Authenticate WordPress Plugin
+### Step 2: Content Sync Configuration
 
-1. **Enter Credentials**
-   - In WordPress plugin settings, go to **Authentication** section
-   - Enter your **Email Address**
-   - Enter your **Password**
-   - Optionally enter **Organization ID** (if you have multiple organizations)
+1. **Enable Content Sync**
+   - Check **Enable Content Synchronization**
+   - The current system uses direct API communication
+   - No user authentication required for basic sync
 
-2. **Authenticate**
-   - Click **Authenticate** button
-   - Wait for authentication process to complete
-   - You should see "Authentication successful" message
+2. **Configure Sync Settings**
+   - Choose content types to sync (Posts, Pages, Custom Post Types)
+   - Set sync direction (currently WordPress → CMS only)
+   - Configure auto-sync triggers
 
-3. **Verify Authentication**
-   - Plugin will display your user information
-   - Organization details will be shown
-   - Authentication status will show as "Connected"
+### Step 3: Test Basic Functionality
 
-### Step 3: Configure Sync Settings
+1. **Test API Endpoints**
+   - Plugin will test basic API endpoints:
+     - `/health` - Server health check
+     - `/api/v1/content` - Content listing
+     - `/api/v1/content-types` - Available content types
 
-1. **Select Content Types**
-   - Choose which WordPress content types to synchronize:
-     - ✅ **Posts** (recommended)
-     - ✅ **Pages** (recommended)
-     - ✅ **Custom Post Types** (if needed)
+2. **Verify Content Types**
+   - Check that CMS content types are available:
+     - Blog Post
+     - Page
+     - Custom types (if configured)
 
-2. **Sync Direction**
-   - **Bidirectional** (recommended): Content syncs both ways
-   - **WordPress to CMS**: Only WordPress → CMS platform
-   - **CMS to WordPress**: Only CMS platform → WordPress
-
-3. **Auto-Sync Settings**
-   - ✅ **Enable auto-sync on publish**
-   - ✅ **Enable auto-sync on update**
-   - ⚠️ **Enable auto-sync on delete** (use with caution)
+3. **Configure Sync Options**
+   - **Auto-Sync Settings**:
+     - ✅ **Enable auto-sync on publish**
+     - ✅ **Enable auto-sync on update**
+     - ⚠️ **Enable auto-sync on delete** (use with caution)
 
 ## Content Synchronization
 
@@ -181,12 +191,32 @@ Each post/page will show sync status in the editor:
    - Click **Start Bulk Sync**
    - Monitor progress in real-time
 
+### How Sync Works
+
+1. **WordPress → CMS API**
+   - Plugin captures WordPress post data
+   - Converts to JSON format expected by API
+   - Makes POST request to `/api/v1/content`
+   - Stores CMS ID in WordPress metadata
+
+2. **Content Mapping**
+   ```json
+   {
+     "title": "Post Title",
+     "content": "Post content in HTML or text",
+     "status": "published|draft|archived",
+     "content_type_id": "blog-post|page",
+     "published_at": "2024-01-15T10:30:00Z",
+     "created_at": "2024-01-15T10:25:00Z"
+   }
+   ```
+
 ## Use Case: Creating and Syncing Content
 
-Let's walk through a complete example of creating content in WordPress and syncing it to the CMS platform.
+Let's walk through a complete example of creating content in WordPress and syncing it to the CMS API.
 
 ### Scenario
-You're a content manager for "TechBlog Pro" and want to create a blog post about "The Future of AI in Web Development" that will be synchronized with your headless CMS for use across multiple platforms.
+You're a content manager for "TechBlog Pro" and want to create a blog post about "The Future of AI in Web Development" that will be synchronized with your headless CMS API for use across multiple platforms.
 
 ### Step 1: Create New Blog Post
 
@@ -238,7 +268,7 @@ You're a content manager for "TechBlog Pro" and want to create a blog post about
 
 2. **Sync Options**
    - **Sync on Publish**: ✅ Enabled
-   - **Include Featured Image**: ✅ Enabled
+   - **Include Featured Image**: ✅ Enabled (URL will be sent)
    - **Include Metadata**: ✅ Enabled (categories, tags, custom fields)
 
 ### Step 3: Publish and Sync
@@ -255,27 +285,40 @@ You're a content manager for "TechBlog Pro" and want to create a blog post about
 
 3. **Verify Sync Success**
    - ✅ **Sync Status**: Synced
-   - ✅ **CMS ID**: Shows unique CMS platform ID
+   - ✅ **CMS ID**: Shows unique CMS API ID (e.g., `content-1234567890-abc123`)
    - ✅ **Last Sync**: Shows timestamp
    - ✅ **Sync Log**: No errors reported
 
-### Step 4: Verify in CMS Platform
+### Step 4: Verify in CMS API
 
-1. **Check CMS Dashboard**
-   - Login to your CMS Automation platform
-   - Navigate to **Content → Blog Posts**
-   - Find "The Future of AI in Web Development"
+1. **Check CMS API Data**
+   - Access the API directly or through a frontend client
+   - Make a GET request to `/api/v1/content`
+   - Find "The Future of AI in Web Development" in the response
 
 2. **Verify Content Integrity**
    - ✅ **Title**: Matches WordPress
-   - ✅ **Content**: Full HTML content preserved
-   - ✅ **Categories**: Properly mapped
-   - ✅ **Tags**: All tags synchronized
-   - ✅ **Featured Image**: Image uploaded and linked
-   - ✅ **Author**: WordPress author information
-   - ✅ **Publication Date**: Matches WordPress
+   - ✅ **Content**: Full content preserved (may be stored as JSON)
+   - ✅ **Status**: Published status synchronized
+   - ✅ **Content Type**: Mapped to 'blog-post'
+   - ✅ **Timestamps**: Creation and publication dates
+   - ✅ **Metadata**: Categories and tags (if supported by current schema)
 
-### Step 5: Content Updates and Bi-directional Sync
+3. **API Response Example**
+   ```json
+   {
+     "id": "content-1234567890-abc123",
+     "title": "The Future of AI in Web Development",
+     "content": "Artificial Intelligence is revolutionizing...",
+     "status": "published",
+     "content_type_id": "blog-post",
+     "published_at": "2024-01-15T10:30:00Z",
+     "created_at": "2024-01-15T10:25:00Z",
+     "updated_at": "2024-01-15T10:30:00Z"
+   }
+   ```
+
+### Step 5: Content Updates and Sync
 
 1. **Update Content in WordPress**
    - Edit the post in WordPress
@@ -284,39 +327,41 @@ You're a content manager for "TechBlog Pro" and want to create a blog post about
    - Save changes
 
 2. **Automatic Sync**
-   - Changes automatically sync to CMS platform
+   - Changes automatically sync to CMS API
+   - Makes PUT request to `/api/v1/content/{id}`
    - Updated timestamp reflects in both systems
 
-3. **Update Content in CMS Platform**
-   - Login to CMS platform
-   - Edit the same blog post
-   - Add meta description for SEO
-   - Update tags
+3. **Update Content via API**
+   - Use API client or frontend to edit content
+   - Make PUT request to `/api/v1/content/{id}`
+   - Update title, content, or status
 
-4. **Sync Back to WordPress**
-   - CMS platform pushes changes back to WordPress
-   - WordPress post updates with new metadata
-   - Conflict resolution handles simultaneous edits
+4. **Sync Back to WordPress** (Future Feature)
+   - Currently, sync is primarily WordPress → CMS
+   - Bidirectional sync planned for future releases
+   - Manual sync from CMS → WordPress available through plugin interface
 
 ### Step 6: Multi-Platform Distribution
 
-1. **Use CMS Platform Features**
-   - Create social media adaptations
-   - Generate email newsletter version
-   - Create mobile-optimized version
+1. **Use CMS API Features**
+   - Content is available via REST API for any client
+   - Build frontend applications that consume the API
+   - Create mobile apps, websites, or other integrations
 
 2. **Maintain Single Source of Truth**
    - WordPress remains primary content creation interface
-   - CMS platform handles distribution and adaptation
-   - All versions stay synchronized
+   - CMS API provides standardized access to content
+   - All consuming applications get consistent data
 
 ## AI Content Features
+
+The AI features depend on the CMS API server configuration and require an OpenAI API key to be set on the server.
 
 ### AI Content Generation
 
 1. **Access AI Tools**
    - In WordPress post editor
-   - Find **AI Content Generator** panel
+   - Find **AI Content Generator** panel (if plugin includes AI features)
    - Enter content prompt or topic
 
 2. **Generate Content**
@@ -329,8 +374,13 @@ You're a content manager for "TechBlog Pro" and want to create a blog post about
    - Target Audience: Web developers
    ```
 
-3. **Review and Insert**
-   - AI generates content suggestion
+3. **AI Service Requirements**
+   - Requires OpenAI API key configuration on the CMS server
+   - Server must have environment variable `OPENAI_API_KEY` set
+   - Check with your system administrator if AI features are available
+
+4. **Review and Insert**
+   - AI generates content suggestion via `/api/v1/ai/generate`
    - Review for accuracy and relevance
    - Click **Insert** to add to post
    - Edit as needed
@@ -340,6 +390,7 @@ You're a content manager for "TechBlog Pro" and want to create a blog post about
 1. **Content Analysis**
    - Select text in editor
    - Click **Get Writing Suggestions**
+   - Plugin sends content to `/api/v1/ai/suggestions`
    - Receive suggestions for:
      - Grammar improvements
      - Readability enhancements
@@ -371,15 +422,16 @@ You're a content manager for "TechBlog Pro" and want to create a blog post about
 
 ### Common Issues and Solutions
 
-#### 1. Authentication Failures
+#### 1. API Connection Failures
 
-**Problem**: "Authentication failed" error
+**Problem**: "Connection failed" or "API not reachable" error
 
 **Solutions**:
-- Verify email and password are correct
-- Check organization ID if using multiple orgs
-- Ensure CMS platform account is active
-- Clear browser cache and try again
+- Verify API URL is correct and accessible
+- Check if API server is running (for local development)
+- Ensure no firewall blocking the connection
+- Test API directly with curl: `curl http://your-api-url/health`
+- Check server logs for connection attempts
 
 **Debug Steps**:
 ```php
@@ -391,21 +443,41 @@ define('WP_DEBUG_LOG', true);
 tail -f /wp-content/debug.log
 ```
 
+**Test API Connection Manually**:
+```bash
+# Test health endpoint
+curl http://localhost:8000/health
+
+# Test content endpoint
+curl http://localhost:8000/api/v1/content
+
+# Test from WordPress server
+wp shell
+wp_remote_get('http://localhost:8000/health');
+```
+
 #### 2. Sync Failures
 
-**Problem**: Content not syncing to CMS platform
+**Problem**: Content not syncing to CMS API
 
 **Solutions**:
 - Check internet connectivity
 - Verify API URL is correct
 - Ensure content type is enabled for sync
 - Check sync logs for specific errors
+- Verify API server is accepting requests
 
 **Debug Steps**:
 - Go to **Tools → CMS Automation Logs**
 - Find failed sync attempts
 - Check error messages
 - Retry manual sync
+
+**Common Error Messages**:
+- `400 Bad Request`: Content data validation failed
+- `404 Not Found`: API endpoint not available
+- `500 Internal Server Error`: Server-side issue
+- `Connection timeout`: Network or server response issue
 
 #### 3. Content Conflicts
 
@@ -422,26 +494,27 @@ tail -f /wp-content/debug.log
 **Problem**: Images not syncing properly
 
 **Solutions**:
-- Verify image URLs are accessible
+- Verify image URLs are accessible publicly
 - Check file size limits
 - Ensure proper permissions
 - Use absolute URLs for images
+- Note: Current system sends image URLs, not files
 
 ### Performance Issues
 
 #### Slow Sync Times
 
 **Causes**:
-- Large image files
-- Complex content with many media items
+- Large content with many media items
 - Network latency
 - Server resource constraints
+- API server performance
 
 **Solutions**:
-- Optimize images before upload
-- Use CDN for media files
-- Implement sync queuing
+- Optimize content before sync
 - Monitor server performance
+- Implement sync queuing
+- Check API server logs
 
 ### Plugin Conflicts
 
@@ -449,7 +522,7 @@ tail -f /wp-content/debug.log
 
 1. **Security Plugins**
    - Some security plugins block API requests
-   - Whitelist CMS platform API URLs
+   - Whitelist CMS API URLs
    - Configure firewall rules
 
 2. **Cache Plugins**
@@ -467,9 +540,9 @@ tail -f /wp-content/debug.log
 ### Content Management
 
 1. **Single Source Editing**
-   - Choose primary editing platform (WordPress or CMS)
-   - Avoid simultaneous editing in both systems
-   - Use CMS platform for multi-format content
+   - Use WordPress as primary editing platform
+   - Avoid editing same content simultaneously
+   - Use CMS API for read-only access from other applications
 
 2. **Content Planning**
    - Plan content structure before creation
@@ -479,21 +552,22 @@ tail -f /wp-content/debug.log
 3. **Media Management**
    - Optimize images before upload
    - Use descriptive file names
-   - Implement consistent media organization
+   - Ensure images are publicly accessible
+   - Consider CDN for media files
 
 ### Security
 
-1. **Authentication Security**
-   - Use strong passwords
-   - Enable two-factor authentication
-   - Regularly rotate credentials
-   - Limit plugin access to necessary users
+1. **API Connection Security**
+   - Use HTTPS for production API connections
+   - Secure your API server with proper authentication
+   - Implement rate limiting on the API server
+   - Monitor API access logs
 
-2. **API Security**
-   - Use HTTPS for all communications
-   - Monitor API usage logs
-   - Implement rate limiting
-   - Regular security audits
+2. **WordPress Security**
+   - Limit plugin access to necessary users
+   - Keep WordPress and plugins updated
+   - Use strong passwords for WordPress admin
+   - Regular security audits of WordPress installation
 
 ### Performance Optimization
 
@@ -525,7 +599,7 @@ tail -f /wp-content/debug.log
 
 3. **Backup Strategy**
    - Regular WordPress backups
-   - Export content from CMS platform
+   - Export content from CMS API
    - Test restore procedures
    - Document recovery processes
 
@@ -551,20 +625,33 @@ tail -f /wp-content/debug.log
    }, 10, 2);
    ```
 
-### Webhook Configuration
+### API Integration Testing
 
-1. **Setup Webhooks**
-   - Configure webhook endpoints
-   - Handle incoming sync requests
-   - Implement security validation
-   - Process webhook data
+1. **Test API Endpoints**
+   ```bash
+   # Health check
+   curl http://localhost:8000/health
+   
+   # List content
+   curl http://localhost:8000/api/v1/content
+   
+   # Create content
+   curl -X POST http://localhost:8000/api/v1/content \
+     -H "Content-Type: application/json" \
+     -d '{"content": {"title": "Test", "content": "Test content"}}'
+   ```
+
+2. **Monitor API Performance**
+   - Check response times
+   - Monitor error rates
+   - Verify data integrity
 
 ### Multi-Site Network
 
 1. **Network Activation**
    - Enable plugin for entire network
    - Configure site-specific settings
-   - Manage organization mappings
+   - Manage API connections per site
    - Monitor network-wide sync
 
 ## Support and Resources
@@ -573,13 +660,13 @@ tail -f /wp-content/debug.log
 
 1. **Documentation**
    - Plugin documentation: `/wp-content/plugins/cms-automation-bridge/readme.txt`
-   - API documentation: CMS platform docs
+   - API documentation: Check your API server's documentation
    - WordPress Codex: https://codex.wordpress.org/
 
 2. **Support Channels**
    - Plugin support forum
-   - CMS platform support
-   - Email support: support@cms-automation.com
+   - GitHub repository (if available)
+   - System administrator for API server issues
 
 3. **Community Resources**
    - User forums
@@ -595,28 +682,46 @@ tail -f /wp-content/debug.log
    - API endpoints
    - Custom integration examples
 
-2. **CMS Platform API**
-   - REST API documentation
-   - Authentication guides
-   - Rate limiting information
-   - Webhook specifications
+2. **CMS API**
+   - REST API endpoints:
+     - `GET /health` - Server health
+     - `GET /api/v1/content` - List content
+     - `POST /api/v1/content` - Create content
+     - `PUT /api/v1/content/{id}` - Update content
+     - `DELETE /api/v1/content/{id}` - Delete content
+   - Content types endpoint: `/api/v1/content-types`
+   - AI features (if OpenAI configured): `/api/v1/ai/*`
 
 ## Conclusion
 
-The CMS Automation Bridge plugin provides powerful content synchronization and AI-enhanced content creation capabilities for WordPress sites. By following this guide, you can:
+The CMS Automation Bridge plugin provides powerful content synchronization capabilities for WordPress sites with a headless CMS API. By following this guide, you can:
 
 - ✅ Successfully install and configure the plugin
-- ✅ Set up secure authentication with the CMS platform
-- ✅ Synchronize content bidirectionally
-- ✅ Leverage AI features for content enhancement
-- ✅ Troubleshoot common issues
+- ✅ Set up secure API connection with the CMS server
+- ✅ Synchronize content from WordPress to CMS API
+- ✅ Leverage AI features for content enhancement (if configured)
+- ✅ Troubleshoot common connection and sync issues
 - ✅ Implement best practices for optimal performance
 
-For additional support or advanced configuration needs, refer to the plugin documentation or contact the support team.
+**Current System Features:**
+- Direct API communication (no user accounts required)
+- WordPress → CMS content synchronization
+- AI content generation (requires OpenAI API key on server)
+- Content type mapping and status synchronization
+- Basic error handling and logging
+
+**Planned Features:**
+- User authentication and role-based access
+- Bidirectional synchronization (CMS → WordPress)
+- Advanced content conflict resolution
+- Enhanced metadata synchronization
+
+For additional support or advanced configuration needs, refer to the plugin documentation or contact your system administrator.
 
 ---
 
 **Plugin Version**: 1.0.0  
 **WordPress Compatibility**: 5.0+  
 **PHP Compatibility**: 7.4+  
+**API Compatibility**: CMS Automation API v1  
 **Last Updated**: 2024
