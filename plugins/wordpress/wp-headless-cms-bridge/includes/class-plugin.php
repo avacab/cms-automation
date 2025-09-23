@@ -149,6 +149,9 @@ class WP_Headless_CMS_Bridge_Plugin {
         $this->loader->add_action('admin_enqueue_scripts', $plugin_admin, 'enqueue_scripts');
         $this->loader->add_action('admin_menu', $plugin_settings, 'add_admin_menu');
         $this->loader->add_action('admin_init', $plugin_settings, 'register_settings');
+        
+        // Register AJAX handlers
+        $this->loader->add_action('init', $plugin_admin, 'register_ajax_handlers');
 
     }
 
