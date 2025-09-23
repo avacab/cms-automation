@@ -42,7 +42,7 @@ Before installing the CMS Automation Bridge plugin, ensure you have:
 1. **Download the Plugin**
    ```bash
    # If you have access to the source code
-   cd /path/to/cms_automation/wordpress-plugin
+   cd /path/to/cms_automation/plugins/wordpress
    zip -r cms-automation-bridge.zip cms-automation-bridge/
    ```
 
@@ -659,7 +659,7 @@ wp_remote_get('http://localhost:8000/health');
 ### Getting Help
 
 1. **Documentation**
-   - Plugin documentation: `/wp-content/plugins/cms-automation-bridge/readme.txt`
+   - Plugin documentation: `plugins/wordpress/README.md`
    - API documentation: Check your API server's documentation
    - WordPress Codex: https://codex.wordpress.org/
 
