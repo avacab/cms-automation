@@ -154,6 +154,14 @@ class WP_Headless_CMS_Bridge_Admin_Settings {
             'wp_headless_cms_bridge_sync_section'
         );
 
+        add_settings_field(
+            'sync_post_statuses',
+            __('Post Statuses to Sync', 'wp-headless-cms-bridge'),
+            array($this, 'sync_post_statuses_field_callback'),
+            'wp-headless-cms-bridge',
+            'wp_headless_cms_bridge_sync_section'
+        );
+
         // Webhook Section
         add_settings_section(
             'wp_headless_cms_bridge_webhook_section',
@@ -250,6 +258,11 @@ class WP_Headless_CMS_Bridge_Admin_Settings {
 
         if (isset($input['post_types']) && is_array($input['post_types'])) {
             $sanitized['post_types'] = array_map('sanitize_text_field', $input['post_types']);
+        }
+
+        if (isset($input['sync_post_statuses']) && is_array($input['sync_post_statuses'])) {
+            $allowed_statuses = array('publish', 'private', 'draft');
+            $sanitized['sync_post_statuses'] = array_intersect($input['sync_post_statuses'], $allowed_statuses);
         }
 
         if (isset($input['log_enabled'])) {
@@ -381,6 +394,25 @@ class WP_Headless_CMS_Bridge_Admin_Settings {
         }
         echo '</fieldset>';
         echo '<p class="description">' . __('Select which post types should be synchronized with the CMS', 'wp-headless-cms-bridge') . '</p>';
+    }
+
+    public function sync_post_statuses_field_callback() {
+        $selected_statuses = get_option('wp_headless_cms_bridge_sync_post_statuses', array('publish'));
+        
+        $available_statuses = array(
+            'publish' => __('Published', 'wp-headless-cms-bridge'),
+            'private' => __('Private', 'wp-headless-cms-bridge'),
+            'draft' => __('Draft', 'wp-headless-cms-bridge')
+        );
+
+        echo '<fieldset>';
+        foreach ($available_statuses as $status => $label) {
+            $checked = in_array($status, $selected_statuses) ? 'checked="checked"' : '';
+            echo '<label><input type="checkbox" name="wp_headless_cms_bridge_settings[sync_post_statuses][]" value="' . esc_attr($status) . '" ' . $checked . ' />';
+            echo ' ' . esc_html($label) . '</label><br>';
+        }
+        echo '</fieldset>';
+        echo '<p class="description">' . __('Select which post statuses should be synchronized with the CMS. Published content is recommended.', 'wp-headless-cms-bridge') . '</p>';
     }
 
     public function log_enabled_field_callback() {

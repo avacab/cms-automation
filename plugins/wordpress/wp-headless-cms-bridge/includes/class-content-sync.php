@@ -90,9 +90,11 @@ class WP_Headless_CMS_Bridge_Content_Sync {
             return;
         }
 
-        // Skip if post is not published or private (sync both public and private content)
-        if (!in_array($post->post_status, array('publish', 'private'))) {
-            // Skip drafts, auto-drafts, trash, etc. but allow published and private
+        // Check if this post status should be synced
+        $sync_post_statuses = get_option('wp_headless_cms_bridge_sync_post_statuses', array('publish'));
+        error_log("CMS Bridge: sync_post_statuses = " . print_r($sync_post_statuses, true));
+        if (!in_array($post->post_status, $sync_post_statuses)) {
+            error_log("CMS Bridge: Post status '{$post->post_status}' not in sync list, skipping");
             return;
         }
 
