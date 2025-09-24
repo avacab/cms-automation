@@ -69,8 +69,7 @@ class WP_Headless_CMS_Bridge_Plugin {
         $this->define_public_hooks();
         $this->define_api_hooks();
         
-        // Check if we need to complete initialization after activation
-        add_action('init', array($this, 'complete_deferred_initialization'), 0);
+        // No deferred initialization needed - back to original immediate execution
 
     }
 
@@ -238,41 +237,18 @@ class WP_Headless_CMS_Bridge_Plugin {
     }
 
     /**
-     * Complete deferred initialization after plugin activation.
-     *
-     * @since 1.0.1
-     */
-    public function complete_deferred_initialization() {
-        if (get_option('wp_headless_cms_bridge_needs_init')) {
-            // Now we can safely run database operations and other initialization
-            self::create_database_tables();
-            self::set_default_options();
-            self::schedule_cron_jobs();
-            
-            // Remove the initialization flag
-            delete_option('wp_headless_cms_bridge_needs_init');
-            
-            error_log('WP Headless CMS Bridge: Deferred initialization completed');
-        }
-    }
-
-    /**
      * Plugin activation hook.
      *
      * @since 1.0.0
      */
     public static function activate() {
-        // Set a flag to initialize plugin on next init
-        add_option('wp_headless_cms_bridge_needs_init', true);
+        // Back to original approach - do all initialization immediately
+        self::create_database_tables();
+        self::set_default_options();
+        self::schedule_cron_jobs();
         
-        // Set basic default options immediately
-        add_option('wp_headless_cms_bridge_cms_api_url', '', '', 'no');
-        add_option('wp_headless_cms_bridge_cms_api_key', '', '', 'no');
-        add_option('wp_headless_cms_bridge_sync_enabled', false, '', 'no');
-        add_option('wp_headless_cms_bridge_log_enabled', true, '', 'no');
-        
-        // Log activation
-        error_log('WP Headless CMS Bridge: Plugin activated, initialization deferred to init hook');
+        // Flush rewrite rules
+        flush_rewrite_rules();
     }
 
     /**

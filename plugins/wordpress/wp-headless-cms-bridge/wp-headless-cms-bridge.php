@@ -3,7 +3,7 @@
  * Plugin Name: Headless CMS Bridge
  * Plugin URI: https://github.com/your-org/wp-headless-cms-bridge
  * Description: Bridge WordPress with headless CMS systems for seamless content synchronization and management.
- * Version: 1.0.3
+ * Version: 1.0.4
  * Author: CMS Automation Team
  * Author URI: https://cms-automation.com
  * License: GPL v2 or later
@@ -24,7 +24,7 @@ if (!defined('WPINC')) {
 }
 
 // Plugin version
-define('WP_HEADLESS_CMS_BRIDGE_VERSION', '1.0.3');
+define('WP_HEADLESS_CMS_BRIDGE_VERSION', '1.0.4');
 
 // Plugin paths
 define('WP_HEADLESS_CMS_BRIDGE_PLUGIN_FILE', __FILE__);
@@ -36,27 +36,39 @@ define('WP_HEADLESS_CMS_BRIDGE_INCLUDES_DIR', WP_HEADLESS_CMS_BRIDGE_PLUGIN_DIR 
  * The code that runs during plugin activation.
  */
 function activate_wp_headless_cms_bridge() {
-    // Very minimal activation - just log and set a flag
-    error_log('WP Headless CMS Bridge: Activation hook called');
-    add_option('wp_headless_cms_bridge_needs_activation_init', true, '', 'no');
+    // Original approach but with safety checks
+    if (file_exists(WP_HEADLESS_CMS_BRIDGE_INCLUDES_DIR . 'class-plugin.php')) {
+        require_once WP_HEADLESS_CMS_BRIDGE_INCLUDES_DIR . 'class-plugin.php';
+        if (class_exists('WP_Headless_CMS_Bridge_Plugin')) {
+            WP_Headless_CMS_Bridge_Plugin::activate();
+        }
+    }
 }
 
 /**
  * The code that runs during plugin deactivation.
  */
 function deactivate_wp_headless_cms_bridge() {
-    error_log('WP Headless CMS Bridge: Deactivation hook called');
-    // Clean up activation flag
-    delete_option('wp_headless_cms_bridge_needs_activation_init');
+    // Original approach but with safety checks
+    if (file_exists(WP_HEADLESS_CMS_BRIDGE_INCLUDES_DIR . 'class-plugin.php')) {
+        require_once WP_HEADLESS_CMS_BRIDGE_INCLUDES_DIR . 'class-plugin.php';
+        if (class_exists('WP_Headless_CMS_Bridge_Plugin')) {
+            WP_Headless_CMS_Bridge_Plugin::deactivate();
+        }
+    }
 }
 
 /**
  * The code that runs during plugin uninstallation.
  */
 function uninstall_wp_headless_cms_bridge() {
-    error_log('WP Headless CMS Bridge: Uninstall hook called');
-    // Only clean up basic options during uninstall
-    delete_option('wp_headless_cms_bridge_needs_activation_init');
+    // Original approach but with safety checks
+    if (file_exists(WP_HEADLESS_CMS_BRIDGE_INCLUDES_DIR . 'class-plugin.php')) {
+        require_once WP_HEADLESS_CMS_BRIDGE_INCLUDES_DIR . 'class-plugin.php';
+        if (class_exists('WP_Headless_CMS_Bridge_Plugin')) {
+            WP_Headless_CMS_Bridge_Plugin::uninstall();
+        }
+    }
 }
 
 // Register activation, deactivation and uninstall hooks
@@ -99,5 +111,5 @@ function run_wp_headless_cms_bridge() {
     }
 }
 
-// Initialize the plugin only after WordPress is fully loaded
-add_action('plugins_loaded', 'run_wp_headless_cms_bridge', 10);
+// Initialize the plugin immediately (like original working version)
+run_wp_headless_cms_bridge();

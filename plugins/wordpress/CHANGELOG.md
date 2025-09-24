@@ -1,5 +1,25 @@
 # WordPress Plugin Changelog
 
+## [1.0.4] - 2024-09-24
+
+### Fixed - ROOT CAUSE SOLUTION
+- **IDENTIFIED ROOT CAUSE**: Changed plugin initialization timing broke WordPress activation process
+- **FIXED**: Reverted to original immediate execution pattern (like v1.0.0) but with safety checks
+- **SOLUTION**: Plugin now initializes immediately on file load (not deferred to plugins_loaded)
+- **RESULT**: Activation hooks can now properly access plugin classes during activation
+
+### Technical Details
+- Restored immediate execution: `run_wp_headless_cms_bridge()` called directly (not via hook)
+- Restored original activation/deactivation pattern with safety improvements
+- Removed deferred initialization system that was causing timing conflicts
+- Maintained error handling and safety checks from previous versions
+
+### Why This Fixes The Problem
+- WordPress expects plugin classes to be available during activation
+- Moving initialization to `plugins_loaded` hook created timing mismatch
+- Original immediate execution pattern works because classes load before activation hooks run
+
+
 ## [1.0.3] - 2024-09-24
 
 ### Fixed
