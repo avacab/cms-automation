@@ -108,15 +108,38 @@ class WP_Headless_CMS_Bridge_Content_Sync {
             // Transform WordPress post to CMS format
             $cms_data = $this->transform_wp_post_to_cms($post);
             
+            // Debug: Log the data being sent
+            error_log("CMS Bridge: Transformed data for post $post_id: " . json_encode($cms_data));
+            
+            // Validate required fields
+            if (empty($cms_data['title'])) {
+                throw new Exception("Post title is empty for post ID: $post_id. Title: '{$post->post_title}'");
+            }
+            if (!isset($cms_data['content'])) {
+                throw new Exception("Post content field is missing for post ID: $post_id");
+            }
+            
+            // Log the exact field values being checked
+            error_log("CMS Bridge: Validating fields - Title: '" . $cms_data['title'] . "', Content length: " . strlen($cms_data['content']) . ", Content: '" . substr($cms_data['content'], 0, 100) . "...'");
+            
+            // The API validation is strict - both title and content must be non-empty strings
+            if (empty($cms_data['title']) || empty($cms_data['content'])) {
+                $titleCheck = empty($cms_data['title']) ? 'EMPTY' : 'OK';
+                $contentCheck = empty($cms_data['content']) ? 'EMPTY' : 'OK';
+                throw new Exception("API validation will fail - Title: $titleCheck, Content: $contentCheck");
+            }
+            
             // Check if this post already exists in CMS
             $cms_id = get_post_meta($post_id, '_headless_cms_id', true);
             
             if ($cms_id && $update) {
                 // Update existing content
+                error_log("CMS Bridge: Updating existing content with CMS ID: $cms_id");
                 $response = $this->api_client->update_content($cms_id, $cms_data);
                 $action = 'update';
             } else {
                 // Create new content
+                error_log("CMS Bridge: Creating new content");
                 $response = $this->api_client->create_content($cms_data);
                 $action = 'create';
             }
@@ -212,9 +235,9 @@ class WP_Headless_CMS_Bridge_Content_Sync {
         
         // Basic post data
         $cms_data = array(
-            'title' => $post->post_title,
+            'title' => !empty($post->post_title) ? $post->post_title : 'Untitled Post',
             'slug' => $post->post_name,
-            'content' => $post->post_content,
+            'content' => !empty($post->post_content) ? $post->post_content : '[Draft content - no content yet]',
             'excerpt' => $post->post_excerpt,
             'status' => $this->map_wp_status_to_cms($post->post_status),
             'type' => $post->post_type,

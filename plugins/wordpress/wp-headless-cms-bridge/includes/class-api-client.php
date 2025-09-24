@@ -92,28 +92,6 @@ class WP_Headless_CMS_Bridge_API_Client {
         );
     }
 
-    /**
-     * Create content in CMS.
-     *
-     * @since    1.0.0
-     * @param    array    $content_data    The content data.
-     * @return   array|WP_Error           Response data or error.
-     */
-    public function create_content($content_data) {
-        return $this->make_request('POST', '/api/v1/content', $content_data);
-    }
-
-    /**
-     * Update content in CMS.
-     *
-     * @since    1.0.0
-     * @param    string    $cms_id          The CMS content ID.
-     * @param    array     $content_data    The content data.
-     * @return   array|WP_Error            Response data or error.
-     */
-    public function update_content($cms_id, $content_data) {
-        return $this->make_request('PUT', "/api/v1/content/{$cms_id}", $content_data);
-    }
 
     /**
      * Get content from CMS.
@@ -389,6 +367,58 @@ class WP_Headless_CMS_Bridge_API_Client {
     public function update_config($api_url, $api_key) {
         $this->api_url = $api_url;
         $this->api_key = $api_key;
+    }
+
+    /**
+     * Create content in CMS.
+     *
+     * @since    1.0.0
+     * @param    array    $content_data    The content data.
+     * @return   array|WP_Error          Response data or error.
+     */
+    public function create_content($content_data) {
+        // Debug: Log what we're about to send
+        error_log("CMS Bridge API: create_content called with data: " . json_encode($content_data));
+        
+        // The API expects content to be wrapped in a "content" object
+        $data = array(
+            'content' => $content_data
+        );
+        
+        error_log("CMS Bridge API: Sending to API: " . json_encode($data));
+        return $this->make_request('POST', '/api/v1/content', $data);
+    }
+
+    /**
+     * Update content in CMS.
+     *
+     * @since    1.0.0
+     * @param    string   $cms_id         The CMS content ID.
+     * @param    array    $content_data   The content data.
+     * @return   array|WP_Error          Response data or error.
+     */
+    public function update_content($cms_id, $content_data) {
+        // Debug: Log what we're about to send
+        error_log("CMS Bridge API: update_content called for CMS ID $cms_id with data: " . json_encode($content_data));
+        
+        // The API expects content to be wrapped in a "content" object
+        $data = array(
+            'content' => $content_data
+        );
+        
+        error_log("CMS Bridge API: Sending to API: " . json_encode($data));
+        return $this->make_request('PUT', "/api/v1/content/{$cms_id}", $data);
+    }
+
+    /**
+     * Delete content from CMS.
+     *
+     * @since    1.0.0
+     * @param    string   $cms_id    The CMS content ID.
+     * @return   array|WP_Error     Response data or error.
+     */
+    public function delete_content($cms_id) {
+        return $this->make_request('DELETE', "/api/v1/content/{$cms_id}");
     }
 
 }
