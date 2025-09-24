@@ -1,5 +1,21 @@
 # WordPress Plugin Changelog
 
+## [1.0.2] - 2024-09-24
+
+### Fixed
+- Fixed fatal error during plugin activation caused by premature database operations
+- Implemented deferred initialization to avoid WordPress core dependency issues
+- Moved complex activation tasks (database creation, cron scheduling) to init hook
+- Added safer activation process with basic option setting only
+
+### Added
+- Deferred initialization system for safer plugin activation
+- Better error logging during activation and initialization process
+
+### Changed
+- Plugin activation now defers complex operations until WordPress is fully loaded
+
+
 All notable changes to the Headless CMS Bridge WordPress plugin will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
