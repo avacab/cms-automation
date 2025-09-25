@@ -410,15 +410,4 @@ class WP_Headless_CMS_Bridge_API_Client {
         return $this->make_request('PUT', "/api/v1/content/{$cms_id}", $data);
     }
 
-    /**
-     * Delete content from CMS.
-     *
-     * @since    1.0.0
-     * @param    string   $cms_id    The CMS content ID.
-     * @return   array|WP_Error     Response data or error.
-     */
-    public function delete_content($cms_id) {
-        return $this->make_request('DELETE', "/api/v1/content/{$cms_id}");
-    }
-
 }

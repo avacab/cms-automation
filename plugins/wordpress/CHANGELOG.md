@@ -1,5 +1,20 @@
 # WordPress Plugin Changelog
 
+## [1.0.5] - 2024-09-25
+
+### Fixed - DUPLICATE METHOD ERROR RESOLVED
+- **FATAL ERROR FIX**: Removed duplicate `delete_content()` method in class-api-client.php
+- **ERROR**: "Cannot redeclare WP_Headless_CMS_Bridge_API_Client::delete_content()" on line 420
+- **SOLUTION**: Removed duplicate method definition while keeping original at line 114
+- **RESULT**: Plugin should now activate successfully without fatal errors
+
+### Technical Details
+- Identified duplicate `public function delete_content()` methods at lines 114 and 420
+- Removed the duplicate method at line 420 
+- Verified all other methods are unique (create_content, update_content, etc.)
+- Plugin activation should now work correctly
+
+
 ## [1.0.4] - 2024-09-24
 
 ### Fixed - ROOT CAUSE SOLUTION
