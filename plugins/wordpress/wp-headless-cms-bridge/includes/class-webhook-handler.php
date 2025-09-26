@@ -186,8 +186,15 @@ class WP_Headless_CMS_Bridge_Webhook_Handler {
             switch ($event) {
                 case 'created':
                 case 'updated':
+                    $result = $this->handle_content_upsert($content_id, $content_data);
+                    break;
+                    
                 case 'published':
                     $result = $this->handle_content_upsert($content_id, $content_data);
+                    // Trigger social media scheduling for published content
+                    if (!is_wp_error($result)) {
+                        $this->trigger_social_media_scheduling($content_id, $content_data);
+                    }
                     break;
                     
                 case 'deleted':
@@ -557,6 +564,200 @@ class WP_Headless_CMS_Bridge_Webhook_Handler {
         }
 
         error_log($log_message);
+    }
+
+    /**
+     * Trigger social media scheduling for published content.
+     *
+     * @since    1.0.0
+     * @param    string    $content_id      The CMS content ID.
+     * @param    array     $content_data    The content data.
+     */
+    private function trigger_social_media_scheduling($content_id, $content_data) {
+        
+        // Check if social media scheduling is enabled
+        $social_enabled = get_option('wp_headless_cms_bridge_social_enabled', false);
+        if (!$social_enabled) {
+            return;
+        }
+
+        // Get configured social media platforms
+        $enabled_platforms = get_option('wp_headless_cms_bridge_social_platforms', array());
+        if (empty($enabled_platforms)) {
+            return;
+        }
+
+        // Get CMS API URL
+        $cms_api_url = get_option('wp_headless_cms_bridge_api_url', '');
+        if (empty($cms_api_url)) {
+            $this->log_webhook_error('social_scheduling_failed', 'CMS API URL not configured');
+            return;
+        }
+
+        // Prepare social media content
+        $social_content = $this->prepare_social_content($content_data);
+        
+        if (empty($social_content)) {
+            $this->log_webhook_error('social_scheduling_failed', 'Failed to prepare social media content', array(
+                'content_id' => $content_id
+            ));
+            return;
+        }
+
+        // Prepare the social scheduling request
+        $schedule_data = array(
+            'contentId' => $content_id,
+            'platforms' => $enabled_platforms,
+            'content' => $social_content,
+            'useOptimalTiming' => get_option('wp_headless_cms_bridge_social_optimal_timing', true)
+        );
+
+        // Send request to CMS API to schedule social media posts
+        $this->send_social_scheduling_request($cms_api_url, $schedule_data);
+    }
+
+    /**
+     * Prepare content for social media posting.
+     *
+     * @since    1.0.0
+     * @param    array    $content_data    The content data.
+     * @return   array                     Social media content.
+     */
+    private function prepare_social_content($content_data) {
+        
+        if (empty($content_data)) {
+            return array();
+        }
+
+        $title = isset($content_data['title']) ? $content_data['title'] : '';
+        $content = isset($content_data['content']) ? $content_data['content'] : '';
+        $excerpt = isset($content_data['excerpt']) ? $content_data['excerpt'] : '';
+        
+        // Get the WordPress post URL for social media sharing
+        $post_url = '';
+        if (isset($content_data['slug']) || isset($content_data['permalink'])) {
+            $post_url = isset($content_data['permalink']) ? $content_data['permalink'] : home_url('/' . $content_data['slug']);
+        }
+
+        // Create social media message
+        $message = '';
+        if (!empty($excerpt)) {
+            $message = $excerpt;
+        } elseif (!empty($content)) {
+            // Extract first paragraph or sentence from content
+            $content_text = wp_strip_all_tags($content);
+            $sentences = preg_split('/[.!?]+/', $content_text);
+            $message = !empty($sentences[0]) ? trim($sentences[0]) : '';
+            
+            // Limit message length for social media
+            if (strlen($message) > 200) {
+                $message = substr($message, 0, 197) . '...';
+            }
+        }
+
+        // Add title if message is still empty
+        if (empty($message) && !empty($title)) {
+            $message = $title;
+        }
+
+        // Get featured image if available
+        $image_url = '';
+        if (isset($content_data['featured_image'])) {
+            $image_url = $content_data['featured_image'];
+        }
+
+        return array(
+            'message' => $message,
+            'title' => $title,
+            'url' => $post_url,
+            'imageUrl' => $image_url
+        );
+    }
+
+    /**
+     * Send social media scheduling request to CMS API.
+     *
+     * @since    1.0.0
+     * @param    string    $api_url        The CMS API URL.
+     * @param    array     $schedule_data  The scheduling data.
+     */
+    private function send_social_scheduling_request($api_url, $schedule_data) {
+        
+        $endpoint = rtrim($api_url, '/') . '/api/v1/social/schedule';
+        
+        $args = array(
+            'method' => 'POST',
+            'timeout' => 30,
+            'headers' => array(
+                'Content-Type' => 'application/json',
+                'X-WordPress-Source' => 'wp-headless-cms-bridge'
+            ),
+            'body' => json_encode($schedule_data)
+        );
+
+        // Add API key if configured
+        $api_key = get_option('wp_headless_cms_bridge_api_key', '');
+        if (!empty($api_key)) {
+            $args['headers']['Authorization'] = 'Bearer ' . $api_key;
+        }
+
+        $response = wp_remote_post($endpoint, $args);
+        
+        if (is_wp_error($response)) {
+            $this->log_webhook_error('social_api_request_failed', $response->get_error_message(), array(
+                'endpoint' => $endpoint,
+                'content_id' => $schedule_data['contentId']
+            ));
+            return;
+        }
+
+        $response_code = wp_remote_retrieve_response_code($response);
+        $response_body = wp_remote_retrieve_body($response);
+        
+        if ($response_code !== 200 && $response_code !== 201) {
+            $this->log_webhook_error('social_scheduling_api_error', 'Social scheduling request failed', array(
+                'response_code' => $response_code,
+                'response_body' => $response_body,
+                'content_id' => $schedule_data['contentId']
+            ));
+            return;
+        }
+
+        // Parse response
+        $response_data = json_decode($response_body, true);
+        
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            $this->log_webhook_error('social_response_parse_error', 'Failed to parse social scheduling response', array(
+                'response_body' => $response_body,
+                'content_id' => $schedule_data['contentId']
+            ));
+            return;
+        }
+
+        if (isset($response_data['success']) && $response_data['success']) {
+            $this->log_social_scheduling_success($schedule_data['contentId'], $response_data);
+        } else {
+            $this->log_webhook_error('social_scheduling_failed', 'Social media scheduling failed', array(
+                'response' => $response_data,
+                'content_id' => $schedule_data['contentId']
+            ));
+        }
+    }
+
+    /**
+     * Log successful social media scheduling.
+     *
+     * @since    1.0.0
+     * @param    string    $content_id      The content ID.
+     * @param    array     $response_data   The API response.
+     */
+    private function log_social_scheduling_success($content_id, $response_data) {
+        if (!get_option('wp_headless_cms_bridge_log_enabled', true)) {
+            return;
+        }
+
+        $scheduled_posts = isset($response_data['data']) ? count($response_data['data']) : 0;
+        error_log("[WP Headless CMS Bridge] Social media scheduling successful for content ID {$content_id}: {$scheduled_posts} posts scheduled");
     }
 
     /**

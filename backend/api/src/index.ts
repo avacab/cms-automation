@@ -59,6 +59,7 @@ app.get('/', (req, res) => {
 
 // Import services and routes
 import { createClient } from '@supabase/supabase-js';
+import socialRoutes from './routes/social.js';
 // import { StorageFactory } from './services/StorageFactory.js';
 // import { OpenAIService } from './services/OpenAIService.js';
 // import systemRoutes from './routes/system.js';
@@ -988,6 +989,9 @@ app.get('/api/v1/system/setup/supabase', (req, res) => {
 
   res.json(instructions);
 });
+
+// Social media integration routes
+app.use('/api/v1/social', socialRoutes);
 
 // Optimizely integration routes (temporarily disabled for MVP testing)
 // app.use('/api/v1/optimizely', optimizelyRoutes);

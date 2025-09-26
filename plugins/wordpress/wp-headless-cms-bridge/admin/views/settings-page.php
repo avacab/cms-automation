@@ -21,6 +21,9 @@ $active_tab = isset($_GET['tab']) ? $_GET['tab'] : 'settings';
         <a href="?page=wp-headless-cms-bridge&tab=settings" class="nav-tab <?php echo $active_tab == 'settings' ? 'nav-tab-active' : ''; ?>">
             <?php _e('Settings', 'wp-headless-cms-bridge'); ?>
         </a>
+        <a href="?page=wp-headless-cms-bridge&tab=social" class="nav-tab <?php echo $active_tab == 'social' ? 'nav-tab-active' : ''; ?>">
+            <?php _e('Social Media', 'wp-headless-cms-bridge'); ?>
+        </a>
         <a href="?page=wp-headless-cms-bridge&tab=sync-logs" class="nav-tab <?php echo $active_tab == 'sync-logs' ? 'nav-tab-active' : ''; ?>">
             <?php _e('Sync Logs', 'wp-headless-cms-bridge'); ?>
         </a>
@@ -39,6 +42,173 @@ $active_tab = isset($_GET['tab']) ? $_GET['tab'] : 'settings';
                 ?>
             </form>
         </div>
+
+    <?php elseif ($active_tab == 'social'): ?>
+        <div class="tab-content">
+            <h2><?php _e('Social Media Integration', 'wp-headless-cms-bridge'); ?></h2>
+            <p><?php _e('Configure automatic social media posting when content is published to WordPress.', 'wp-headless-cms-bridge'); ?></p>
+            
+            <form method="post" action="options.php">
+                <?php
+                settings_fields('wp_headless_cms_bridge_social_settings');
+                ?>
+                
+                <table class="form-table">
+                    <tr>
+                        <th scope="row">
+                            <label for="social_enabled"><?php _e('Enable Social Media Posting', 'wp-headless-cms-bridge'); ?></label>
+                        </th>
+                        <td>
+                            <input type="checkbox" id="social_enabled" name="wp_headless_cms_bridge_social_enabled" value="1" 
+                                <?php checked(get_option('wp_headless_cms_bridge_social_enabled', false)); ?> />
+                            <label for="social_enabled"><?php _e('Automatically schedule social media posts when content is published', 'wp-headless-cms-bridge'); ?></label>
+                        </td>
+                    </tr>
+                    
+                    <tr>
+                        <th scope="row">
+                            <label><?php _e('Social Media Platforms', 'wp-headless-cms-bridge'); ?></label>
+                        </th>
+                        <td>
+                            <?php
+                            $enabled_platforms = get_option('wp_headless_cms_bridge_social_platforms', array());
+                            $platforms = array(
+                                'facebook' => __('Facebook', 'wp-headless-cms-bridge'),
+                                'twitter' => __('Twitter', 'wp-headless-cms-bridge'),
+                                'linkedin' => __('LinkedIn', 'wp-headless-cms-bridge'),
+                                'instagram' => __('Instagram', 'wp-headless-cms-bridge')
+                            );
+                            ?>
+                            <fieldset>
+                                <?php foreach ($platforms as $platform => $label): ?>
+                                    <label>
+                                        <input type="checkbox" name="wp_headless_cms_bridge_social_platforms[]" 
+                                               value="<?php echo esc_attr($platform); ?>"
+                                               <?php checked(in_array($platform, $enabled_platforms)); ?> />
+                                        <?php echo esc_html($label); ?>
+                                    </label><br>
+                                <?php endforeach; ?>
+                            </fieldset>
+                            <p class="description"><?php _e('Select which social media platforms to post to automatically.', 'wp-headless-cms-bridge'); ?></p>
+                        </td>
+                    </tr>
+                    
+                    <tr>
+                        <th scope="row">
+                            <label for="social_optimal_timing"><?php _e('Optimal Timing', 'wp-headless-cms-bridge'); ?></label>
+                        </th>
+                        <td>
+                            <input type="checkbox" id="social_optimal_timing" name="wp_headless_cms_bridge_social_optimal_timing" value="1" 
+                                <?php checked(get_option('wp_headless_cms_bridge_social_optimal_timing', true)); ?> />
+                            <label for="social_optimal_timing"><?php _e('Use optimal posting times for each platform', 'wp-headless-cms-bridge'); ?></label>
+                            <p class="description">
+                                <?php _e('When enabled, posts will be scheduled at optimal times: Facebook 3PM, Twitter 8AM, LinkedIn 12PM, Instagram 7PM (UTC).', 'wp-headless-cms-bridge'); ?>
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+                
+                <div class="social-media-status">
+                    <h3><?php _e('Social Media Connection Status', 'wp-headless-cms-bridge'); ?></h3>
+                    <div id="social-status-display">
+                        <p><?php _e('Loading social media connection status...', 'wp-headless-cms-bridge'); ?></p>
+                    </div>
+                    <button type="button" class="button button-secondary" onclick="checkSocialStatus()">
+                        <?php _e('Check Connection Status', 'wp-headless-cms-bridge'); ?>
+                    </button>
+                </div>
+                
+                <?php submit_button(__('Save Social Media Settings', 'wp-headless-cms-bridge')); ?>
+            </form>
+            
+            <div class="social-media-help">
+                <h3><?php _e('Setting Up Social Media Integration', 'wp-headless-cms-bridge'); ?></h3>
+                <ol>
+                    <li><?php _e('Enable social media posting above', 'wp-headless-cms-bridge'); ?></li>
+                    <li><?php _e('Select the platforms you want to post to', 'wp-headless-cms-bridge'); ?></li>
+                    <li><?php _e('Configure social media accounts in your CMS dashboard', 'wp-headless-cms-bridge'); ?></li>
+                    <li><?php _e('Publish a post to test the integration', 'wp-headless-cms-bridge'); ?></li>
+                </ol>
+                
+                <p><strong><?php _e('Note:', 'wp-headless-cms-bridge'); ?></strong> 
+                <?php _e('Social media accounts must be connected through your CMS dashboard. This plugin only triggers the scheduling - the actual posting is handled by your headless CMS.', 'wp-headless-cms-bridge'); ?></p>
+            </div>
+        </div>
+        
+        <script>
+        function checkSocialStatus() {
+            const statusDiv = document.getElementById('social-status-display');
+            statusDiv.innerHTML = '<p><?php _e("Checking social media connection status...", "wp-headless-cms-bridge"); ?></p>';
+            
+            // Make AJAX request to check social media status
+            fetch('<?php echo esc_url(admin_url('admin-ajax.php')); ?>', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: 'action=check_social_status&nonce=<?php echo wp_create_nonce("check_social_status"); ?>'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    let html = '<div class="social-status-results">';
+                    const services = data.data.services;
+                    
+                    for (const [platform, status] of Object.entries(services)) {
+                        const statusClass = status.ready ? 'status-connected' : 'status-disconnected';
+                        const statusText = status.ready ? '<?php _e("Connected", "wp-headless-cms-bridge"); ?>' : '<?php _e("Not Connected", "wp-headless-cms-bridge"); ?>';
+                        html += `<div class="social-platform-status ${statusClass}">
+                            <strong>${platform.charAt(0).toUpperCase() + platform.slice(1)}:</strong> ${statusText}
+                        </div>`;
+                    }
+                    
+                    html += '</div>';
+                    statusDiv.innerHTML = html;
+                } else {
+                    statusDiv.innerHTML = '<p class="error"><?php _e("Failed to check social media status. Please ensure your CMS API is configured correctly.", "wp-headless-cms-bridge"); ?></p>';
+                }
+            })
+            .catch(error => {
+                statusDiv.innerHTML = '<p class="error"><?php _e("Error checking social media status.", "wp-headless-cms-bridge"); ?></p>';
+            });
+        }
+        
+        // Check status on page load
+        document.addEventListener('DOMContentLoaded', checkSocialStatus);
+        </script>
+        
+        <style>
+        .social-media-status {
+            margin-top: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            background: #f9f9f9;
+        }
+        
+        .social-status-results {
+            margin: 10px 0;
+        }
+        
+        .social-platform-status {
+            padding: 5px;
+            margin: 5px 0;
+        }
+        
+        .status-connected {
+            color: #46b450;
+        }
+        
+        .status-disconnected {
+            color: #dc3232;
+        }
+        
+        .social-media-help {
+            margin-top: 30px;
+            padding: 15px;
+            border-left: 4px solid #0073aa;
+            background: #f0f8ff;
+        }
+        </style>
 
     <?php elseif ($active_tab == 'sync-logs'): ?>
         <div class="tab-content">
