@@ -3,7 +3,7 @@
  * Plugin Name: Headless CMS Bridge
  * Plugin URI: https://github.com/your-org/wp-headless-cms-bridge
  * Description: Bridge WordPress with headless CMS systems for seamless content synchronization and management.
- * Version: 1.0.5
+ * Version: 1.0.6
  * Author: CMS Automation Team
  * Author URI: https://cms-automation.com
  * License: GPL v2 or later
@@ -24,7 +24,7 @@ if (!defined('WPINC')) {
 }
 
 // Plugin version
-define('WP_HEADLESS_CMS_BRIDGE_VERSION', '1.0.5');
+define('WP_HEADLESS_CMS_BRIDGE_VERSION', '1.0.6');
 
 // Plugin paths
 define('WP_HEADLESS_CMS_BRIDGE_PLUGIN_FILE', __FILE__);

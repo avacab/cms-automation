@@ -292,18 +292,19 @@ class WP_Headless_CMS_Bridge_Admin_Settings {
     }
 
     /**
-     * Get current settings.
+     * Get current settings with optimized defaults.
      *
      * @since    1.0.0
      * @return   array    Current settings.
      */
     private function get_current_settings() {
         return array(
-            'cms_api_url' => get_option('wp_headless_cms_bridge_cms_api_url', ''),
+            'cms_api_url' => get_option('wp_headless_cms_bridge_cms_api_url', 'https://cms-automation-api.vercel.app'),
             'cms_api_key' => get_option('wp_headless_cms_bridge_cms_api_key', ''),
-            'sync_enabled' => get_option('wp_headless_cms_bridge_sync_enabled', false),
+            'sync_enabled' => get_option('wp_headless_cms_bridge_sync_enabled', true),
             'sync_direction' => get_option('wp_headless_cms_bridge_sync_direction', 'wp_to_cms'),
             'post_types' => get_option('wp_headless_cms_bridge_post_types', array('post', 'page')),
+            'sync_post_statuses' => get_option('wp_headless_cms_bridge_sync_post_statuses', array('publish')),
             'webhook_secret' => get_option('wp_headless_cms_bridge_webhook_secret', ''),
             'log_enabled' => get_option('wp_headless_cms_bridge_log_enabled', true),
             'log_retention_days' => get_option('wp_headless_cms_bridge_log_retention_days', 30)
@@ -347,9 +348,9 @@ class WP_Headless_CMS_Bridge_Admin_Settings {
     // Field Callbacks
 
     public function api_url_field_callback() {
-        $value = get_option('wp_headless_cms_bridge_cms_api_url', '');
-        echo '<input type="url" id="cms_api_url" name="wp_headless_cms_bridge_settings[cms_api_url]" value="' . esc_attr($value) . '" class="regular-text" placeholder="https://your-cms-api.com" />';
-        echo '<p class="description">' . __('The base URL of your headless CMS API (e.g., http://localhost:5000)', 'wp-headless-cms-bridge') . '</p>';
+        $value = get_option('wp_headless_cms_bridge_cms_api_url', 'https://cms-automation-api.vercel.app');
+        echo '<input type="url" id="cms_api_url" name="wp_headless_cms_bridge_settings[cms_api_url]" value="' . esc_attr($value) . '" class="regular-text" placeholder="https://cms-automation-api.vercel.app" />';
+        echo '<p class="description">' . __('The base URL of your headless CMS API (defaults to production API)', 'wp-headless-cms-bridge') . '</p>';
     }
 
     public function api_key_field_callback() {
@@ -361,7 +362,7 @@ class WP_Headless_CMS_Bridge_Admin_Settings {
     }
 
     public function sync_enabled_field_callback() {
-        $value = get_option('wp_headless_cms_bridge_sync_enabled', false);
+        $value = get_option('wp_headless_cms_bridge_sync_enabled', true);
         echo '<label><input type="checkbox" id="sync_enabled" name="wp_headless_cms_bridge_settings[sync_enabled]" value="1"' . checked(1, $value, false) . ' />';
         echo ' ' . __('Enable automatic content synchronization', 'wp-headless-cms-bridge') . '</label>';
     }
