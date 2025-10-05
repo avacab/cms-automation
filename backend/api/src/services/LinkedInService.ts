@@ -1,5 +1,5 @@
 import axios, { AxiosInstance } from 'axios';
-import crypto from 'crypto';
+import { randomBytes } from 'crypto';
 
 export interface LinkedInConfig {
   clientId: string;
@@ -67,7 +67,6 @@ export class LinkedInService {
   constructor(config: LinkedInConfig) {
     this.config = {
       apiVersion: 'v2',
-      visibility: 'PUBLIC',
       ...config
     };
 
@@ -94,7 +93,7 @@ export class LinkedInService {
    * Generate LinkedIn OAuth URL for user authorization
    */
   generateAuthUrl(redirectUri: string, scopes: string[] = ['w_member_social', 'r_liteprofile', 'r_organization_social', 'w_organization_social']): LinkedInAuthUrl {
-    const state = crypto.randomBytes(16).toString('hex');
+    const state = randomBytes(16).toString('hex');
     
     const params = new URLSearchParams({
       client_id: this.config.clientId,
@@ -440,7 +439,10 @@ export class LinkedInService {
 
       const profileResult = await this.getUserProfile();
       if (!profileResult.success) {
-        return profileResult;
+        return {
+          success: false,
+          error: profileResult.error
+        };
       }
 
       const organizationsResult = await this.getUserOrganizations();
