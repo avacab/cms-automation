@@ -30,9 +30,74 @@ git checkout feature/multi-channel-publishing-complete
 git pull origin feature/multi-channel-publishing-complete
 ```
 
-## Step 2: Deploy Backend to Vercel
+## Step 2: Deploy Feature Branch to Vercel
 
-### Option A: Deploy via Vercel CLI
+**IMPORTANT**: Since your frontend and backend are already configured in Vercel and connected to the GitHub repository, you need to ensure the **feature branch** is deployed, not the main branch.
+
+### Option A: Change Production Branch (Recommended for Testing)
+
+This temporarily changes which branch Vercel deploys to production.
+
+#### Backend:
+1. Go to https://vercel.com/dashboard
+2. Select your **backend API project** (e.g., "cms-automation-api")
+3. Go to **Settings** → **Git**
+4. Under **"Production Branch"**, change from `main` to `feature/multi-channel-publishing-complete`
+5. Click **"Save"**
+6. Go to **Deployments** tab
+7. Vercel will automatically trigger a new deployment from the feature branch
+8. Wait for deployment to complete (green checkmark)
+9. Your backend will now serve the feature branch code
+
+#### Frontend:
+1. Go to https://vercel.com/dashboard
+2. Select your **frontend project** (e.g., "cms-automation-frontend")
+3. Go to **Settings** → **Git**
+4. Under **"Production Branch"**, change from `main` to `feature/multi-channel-publishing-complete`
+5. Click **"Save"**
+6. Go to **Deployments** tab
+7. Vercel will automatically trigger a new deployment from the feature branch
+8. Wait for deployment to complete
+9. Your frontend will now serve the feature branch code
+
+### Option B: Use Preview Deployments (For Testing Without Changing Production)
+
+Vercel automatically creates preview deployments for every branch.
+
+#### Backend:
+1. Push your feature branch to GitHub: `git push origin feature/multi-channel-publishing-complete`
+2. Vercel automatically creates a preview deployment
+3. Go to https://vercel.com/dashboard → Select backend project → **Deployments**
+4. Find the deployment for `feature/multi-channel-publishing-complete` branch
+5. Click on it and copy the preview URL (e.g., `https://cms-automation-api-git-feature-multi-channel-xyz.vercel.app`)
+6. This URL serves your feature branch code
+
+#### Frontend:
+1. Go to https://vercel.com/dashboard → Select frontend project → **Deployments**
+2. Find the deployment for `feature/multi-channel-publishing-complete` branch
+3. Copy the preview URL (e.g., `https://cms-automation-frontend-git-feature-multi-channel-xyz.vercel.app`)
+
+**Important**: If using preview URLs, update your frontend environment variable `VITE_API_URL` to point to the backend preview URL.
+
+### Option C: Manual Redeploy from Vercel Dashboard
+
+Force a redeploy from the feature branch:
+
+#### Backend:
+1. Ensure feature branch is pushed: `git push origin feature/multi-channel-publishing-complete`
+2. Go to https://vercel.com/dashboard → Select backend project
+3. Go to **Deployments** tab
+4. Find the latest deployment for the feature branch
+5. Click **"⋯" (three dots)** → **"Redeploy"**
+6. Select **"Use existing Build Cache"** or not (your choice)
+7. Click **"Redeploy"**
+
+#### Frontend:
+Same process for frontend project
+
+### Option D: Deploy via Vercel CLI (If Projects Don't Exist Yet)
+
+Only use this if you haven't already set up Vercel projects.
 
 ```bash
 # Navigate to backend API directory
@@ -41,51 +106,56 @@ cd backend/api
 # Login to Vercel (if not already logged in)
 vercel login
 
+# Link to existing project or create new one
+vercel link
+
 # Deploy to production
 vercel --prod
 
-# Note the deployment URL (e.g., https://your-api.vercel.app)
-```
-
-### Option B: Deploy via Vercel Dashboard
-
-1. Go to https://vercel.com/dashboard
-2. Click **"Add New Project"**
-3. Import your GitHub repository `avacab/cms-automation`
-4. Configure:
-   - **Framework Preset**: Other
-   - **Root Directory**: `backend/api`
-   - **Build Command**: `npm install`
-   - **Output Directory**: (leave empty)
-5. Click **"Deploy"**
-6. Note your backend URL (e.g., `https://cms-automation-api.vercel.app`)
-
-## Step 3: Deploy Frontend to Vercel
-
-### Option A: Deploy via Vercel CLI
-
-```bash
 # Navigate to frontend directory
 cd ../../frontend
 
+# Link to existing project or create new one
+vercel link
+
 # Deploy to production
 vercel --prod
-
-# Note the deployment URL (e.g., https://your-frontend.vercel.app)
 ```
 
-### Option B: Deploy via Vercel Dashboard
+### Verification
 
-1. Go to https://vercel.com/dashboard
-2. Click **"Add New Project"**
-3. Import your GitHub repository `avacab/cms-automation`
-4. Configure:
-   - **Framework Preset**: Vite (or React)
-   - **Root Directory**: `frontend`
-   - **Build Command**: `npm run build`
-   - **Output Directory**: `dist`
-5. Click **"Deploy"**
-6. Note your frontend URL (e.g., `https://cms-automation-frontend.vercel.app`)
+After deployment, verify the feature branch is deployed:
+
+1. **Check Backend:**
+   ```bash
+   curl https://your-backend-api.vercel.app/health
+   ```
+
+2. **Check Frontend:**
+   Open `https://your-frontend.vercel.app` in browser
+
+3. **Verify Git Commit:**
+   - In Vercel dashboard → Deployments → Click latest deployment
+   - Check the "Git Commit" shows the feature branch commit hash
+   - Should match: `git log feature/multi-channel-publishing-complete -1 --format="%H"`
+
+### After Testing: Merge to Main (Optional)
+
+Once you've verified the feature branch works correctly:
+
+```bash
+# Switch to main branch
+git checkout main
+
+# Merge feature branch
+git merge feature/multi-channel-publishing-complete
+
+# Push to remote
+git push origin main
+
+# Change Vercel production branch back to main (if you changed it)
+# Go to Vercel Settings → Git → Production Branch → Change to "main"
+```
 
 ---
 
@@ -676,6 +746,23 @@ curl -X POST https://your-backend-api.vercel.app/api/v1/content-publishing/orche
 
 When updates are made to the feature branch:
 
+### If Using Auto-Deploy (Recommended)
+
+If your Vercel projects are connected to GitHub:
+
+1. Push changes to the feature branch:
+   ```bash
+   git push origin feature/multi-channel-publishing-complete
+   ```
+
+2. Vercel will automatically deploy:
+   - If production branch is set to `feature/multi-channel-publishing-complete`, it deploys to production
+   - Otherwise, creates a preview deployment
+
+3. Check deployments in Vercel dashboard to verify
+
+### If Using Manual Deploy
+
 ```bash
 # Pull latest changes
 git pull origin feature/multi-channel-publishing-complete
@@ -689,7 +776,30 @@ cd ../../frontend
 vercel --prod
 ```
 
-Or let Vercel auto-deploy via GitHub integration.
+### When Ready to Go Live
+
+Once the feature branch is tested and ready:
+
+1. **Merge to main:**
+   ```bash
+   git checkout main
+   git merge feature/multi-channel-publishing-complete
+   git push origin main
+   ```
+
+2. **Update Vercel production branch:**
+   - Go to both projects in Vercel dashboard
+   - Settings → Git → Production Branch → Change back to `main`
+   - Vercel will auto-deploy from main
+
+3. **Clean up:**
+   ```bash
+   # Delete feature branch locally (optional)
+   git branch -d feature/multi-channel-publishing-complete
+
+   # Delete remote feature branch (optional)
+   git push origin --delete feature/multi-channel-publishing-complete
+   ```
 
 ---
 
@@ -699,8 +809,9 @@ Use this checklist to verify complete installation:
 
 ## Installation Complete
 - [ ] Feature branch pulled from GitHub
-- [ ] Backend deployed to Vercel
-- [ ] Frontend deployed to Vercel
+- [ ] **Vercel production branch changed to feature branch** (or using preview deployments)
+- [ ] Backend deployed to Vercel from feature branch (verified git commit in Vercel dashboard)
+- [ ] Frontend deployed to Vercel from feature branch (verified git commit in Vercel dashboard)
 - [ ] Backend environment variables configured (Supabase, LinkedIn, WordPress)
 - [ ] Frontend environment variables configured (API URL, Supabase)
 - [ ] LinkedIn app created and configured
