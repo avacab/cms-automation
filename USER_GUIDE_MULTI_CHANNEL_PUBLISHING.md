@@ -7,10 +7,10 @@ This guide walks you through the complete process of creating a post in the CMS 
 ## Prerequisites
 
 Before you start, ensure:
-- ✅ The backend API is running (usually at `http://localhost:5000`)
-- ✅ The frontend application is running (usually at `http://localhost:5173` or `http://localhost:3000`)
+- ✅ The backend API is deployed to Vercel (e.g., `https://cms-automation-api.vercel.app`)
+- ✅ The frontend application is deployed to Vercel (e.g., `https://cms-automation-frontend.vercel.app`)
 - ✅ WordPress plugin is installed and configured on haidrun.com
-- ✅ LinkedIn API credentials are configured in backend environment
+- ✅ LinkedIn API credentials are configured in Vercel backend environment variables
 - ✅ All required environment variables are set (see `MULTI_CHANNEL_SETUP.md`)
 
 ---
@@ -20,7 +20,7 @@ Before you start, ensure:
 ### Step 1: Open the CMS Frontend
 
 1. Open your web browser
-2. Navigate to your frontend URL (e.g., `http://localhost:5173`)
+2. Navigate to your frontend URL (e.g., `https://cms-automation-frontend.vercel.app`)
 3. You should see the CMS dashboard
 
 ### Step 2: Navigate to Create New Content
@@ -130,14 +130,15 @@ When you click submit, the system performs these actions automatically:
 You can check the status using these API endpoints:
 
 ```bash
+# Replace with your actual backend URL
 # Check overall service status
-curl http://localhost:5000/api/v1/content-publishing/status
+curl https://your-backend-api.vercel.app/api/v1/content-publishing/status
 
 # Check pending LinkedIn posts
-curl http://localhost:5000/api/v1/content-publishing/pending
+curl https://your-backend-api.vercel.app/api/v1/content-publishing/pending
 
 # Check publishing statistics
-curl http://localhost:5000/api/v1/content-publishing/orchestrator/stats
+curl https://your-backend-api.vercel.app/api/v1/content-publishing/orchestrator/stats
 ```
 
 ---
@@ -224,15 +225,19 @@ At Haidrun, we believe that innovation is the key...
 ### "Form submission error"
 
 **Possible causes:**
-- Backend API not running
+- Backend API deployment issue
 - Network connection issue
 - Missing required fields
+- CORS configuration problem
 
 **Solutions:**
-1. Verify backend is running at correct URL
-2. Check browser console for error messages
-3. Ensure Title and Content fields are filled
-4. Try refreshing the page
+1. Verify backend is deployed and accessible (check Vercel dashboard)
+2. Test backend: `curl https://your-backend-api.vercel.app/health`
+3. Check browser console for error messages
+4. Ensure Title and Content fields are filled
+5. Verify frontend environment variable `VITE_API_URL` is correct
+6. Check Vercel backend logs for errors
+7. Try refreshing the page
 
 ---
 
