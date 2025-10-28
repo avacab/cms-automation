@@ -60,6 +60,7 @@ app.get('/', (req, res) => {
 // Import services and routes
 import { createClient } from '@supabase/supabase-js';
 import linkedinRoutes from './routes/linkedin.js';
+import contentPublishingRoutes from './routes/content-publishing.js';
 // import { StorageFactory } from './services/StorageFactory.js';
 // import { OpenAIService } from './services/OpenAIService.js';
 // import systemRoutes from './routes/system.js';
@@ -992,6 +993,9 @@ app.get('/api/v1/system/setup/supabase', (req, res) => {
 
 // LinkedIn integration routes
 app.use('/api/v1/linkedin', linkedinRoutes);
+
+// Content publishing routes
+app.use('/api/v1/content-publishing', contentPublishingRoutes);
 
 // Optimizely integration routes (temporarily disabled for MVP testing)
 // app.use('/api/v1/optimizely', optimizelyRoutes);

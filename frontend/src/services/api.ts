@@ -36,6 +36,33 @@ export interface ContentItem {
   tags?: string[];
 }
 
+export interface PublishingOptions {
+  publishToWordPress: boolean;
+  publishToLinkedIn: boolean;
+  companyBranding: string;
+  scheduleTime?: Date;
+}
+
+export interface MultiChannelPublishingResponse {
+  success: boolean;
+  content: ContentItem;
+  publishing_results: {
+    wordpress?: {
+      success: boolean;
+      message: string;
+      post_id?: string;
+      error?: string;
+    };
+    linkedin?: {
+      success: boolean;
+      message: string;
+      social_post_id?: string;
+      mapping_id?: string;
+      error?: string;
+    };
+  };
+}
+
 export interface ContentType {
   id: string;
   name: string;
@@ -124,6 +151,18 @@ export const contentService = {
   // Delete content item
   async deleteContent(id: string): Promise<{ success: boolean; message: string }> {
     const response = await api.delete<ApiResponse<{ success: boolean; message: string }>>(`/api/v1/content/${id}`);
+    return response.data.data;
+  },
+
+  // Multi-channel publishing
+  async createContentWithPublishing(
+    contentData: Partial<ContentItem>, 
+    publishingOptions: PublishingOptions
+  ): Promise<MultiChannelPublishingResponse> {
+    const response = await api.post<ApiResponse<MultiChannelPublishingResponse>>('/api/v1/content-publishing/multi-channel', {
+      content: contentData,
+      publishing_options: publishingOptions
+    });
     return response.data.data;
   },
 
