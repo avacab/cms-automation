@@ -353,7 +353,8 @@ class WP_Headless_CMS_Bridge_API_Client {
         return array(
             'api_url_configured' => !empty($this->api_url),
             'api_key_configured' => !empty($this->api_key),
-            'fully_configured' => !empty($this->api_url) && !empty($this->api_key)
+            // API key is optional - webhooks use secret-based authentication
+            'fully_configured' => !empty($this->api_url)
         );
     }
 

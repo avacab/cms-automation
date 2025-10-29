@@ -162,6 +162,14 @@ class WP_Headless_CMS_Bridge_Admin_Settings {
             'wp_headless_cms_bridge_sync_section'
         );
 
+        add_settings_field(
+            'auto_publish',
+            __('Auto-publish', 'wp-headless-cms-bridge'),
+            array($this, 'auto_publish_field_callback'),
+            'wp-headless-cms-bridge',
+            'wp_headless_cms_bridge_sync_section'
+        );
+
         // Webhook Section
         add_settings_section(
             'wp_headless_cms_bridge_webhook_section',
@@ -265,6 +273,10 @@ class WP_Headless_CMS_Bridge_Admin_Settings {
             $sanitized['sync_post_statuses'] = array_intersect($input['sync_post_statuses'], $allowed_statuses);
         }
 
+        if (isset($input['auto_publish'])) {
+            $sanitized['auto_publish'] = (bool) $input['auto_publish'];
+        }
+
         if (isset($input['log_enabled'])) {
             $sanitized['log_enabled'] = (bool) $input['log_enabled'];
         }
@@ -305,6 +317,7 @@ class WP_Headless_CMS_Bridge_Admin_Settings {
             'sync_direction' => get_option('wp_headless_cms_bridge_sync_direction', 'wp_to_cms'),
             'post_types' => get_option('wp_headless_cms_bridge_post_types', array('post', 'page')),
             'sync_post_statuses' => get_option('wp_headless_cms_bridge_sync_post_statuses', array('publish')),
+            'auto_publish' => get_option('wp_headless_cms_bridge_auto_publish', true),
             'webhook_secret' => get_option('wp_headless_cms_bridge_webhook_secret', ''),
             'log_enabled' => get_option('wp_headless_cms_bridge_log_enabled', true),
             'log_retention_days' => get_option('wp_headless_cms_bridge_log_retention_days', 30)
@@ -414,6 +427,13 @@ class WP_Headless_CMS_Bridge_Admin_Settings {
         }
         echo '</fieldset>';
         echo '<p class="description">' . __('Select which post statuses should be synchronized with the CMS. Published content is recommended.', 'wp-headless-cms-bridge') . '</p>';
+    }
+
+    public function auto_publish_field_callback() {
+        $value = get_option('wp_headless_cms_bridge_auto_publish', true);
+        echo '<label><input type="checkbox" id="auto_publish" name="wp_headless_cms_bridge_settings[auto_publish]" value="1"' . checked(1, $value, false) . ' />';
+        echo ' ' . __('Automatically publish content received from CMS', 'wp-headless-cms-bridge') . '</label>';
+        echo '<p class="description">' . __('When enabled, posts received via webhook will be published immediately. When disabled, they will be saved as drafts.', 'wp-headless-cms-bridge') . '</p>';
     }
 
     public function log_enabled_field_callback() {
