@@ -263,11 +263,19 @@ After adding, redeploy the frontend.
 
 ## Step 3: Request API Access
 
-1. Go to **Products** tab
-2. Request access to:
-   - **Share on LinkedIn** (for posting)
-   - **Marketing Developer Platform** (for company page posting)
-3. Wait for approval (usually instant for Share on LinkedIn)
+1. Go to **Products** tab in your app dashboard
+2. Click **"Request access"** or **"Add product"** for:
+   - **Share on LinkedIn** - Required for posting to LinkedIn
+   - **Sign In with LinkedIn** (if available) - For OAuth authentication
+3. If you see **"Marketing Developer Platform"** or **"Advertising API"**, you can request it for company page posting
+4. Wait for approval (usually instant for "Share on LinkedIn")
+
+**Note:** The available products may vary by account. At minimum, you need "Share on LinkedIn" with the `w_organization_social` OAuth scope for company page posting.
+
+**If you don't see these products:**
+- Ensure your LinkedIn account is an admin of the Haidrun company page
+- Some products require approval - you may need to submit an application explaining your use case
+- Contact LinkedIn Developer Support if products are missing
 
 ## Step 4: Configure OAuth Redirect URLs
 
@@ -281,24 +289,38 @@ After adding, redeploy the frontend.
 
 ## Step 5: Generate Access Token
 
-You need to get an access token for your Haidrun company page.
+You need to get an access token for your Haidrun company page with the correct OAuth scopes.
+
+**Required OAuth Scopes for Company Page Posting:**
+- `w_organization_social` - **REQUIRED** for posting to company/organization pages
+- `r_liteprofile` - For basic profile information
+- `r_organization_social` - For reading organization content (optional)
+
+**Note:** `w_member_social` is for personal profiles only, not company pages. Using the wrong scope will result in a 403 Forbidden error when trying to post.
 
 ### Option A: Use LinkedIn OAuth Flow (Recommended)
 
 1. Create an OAuth endpoint in your backend (if not exists)
-2. Navigate to:
+2. Ensure your OAuth request includes the `w_organization_social` scope
+3. Navigate to:
    ```
    https://your-backend-api.vercel.app/api/auth/linkedin
    ```
-3. Authorize the app with your Haidrun admin account
-4. Token will be stored in database
+4. Authorize the app with your Haidrun admin account
+5. Token will be stored in database
 
 ### Option B: Manual Token Generation
 
 1. Go to https://www.linkedin.com/developers/tools/oauth/token-generator
-2. Select your app and the scopes: `w_member_social`, `w_organization_social`
-3. Generate token
-4. Manually insert into Supabase (see Part 5)
+2. Select your app
+3. Select the required scopes:
+   - ✅ `w_organization_social` (required for company posting)
+   - ✅ `r_liteprofile`
+4. Click **"Generate Token"**
+5. Copy the access token
+6. Manually insert into Supabase (see Part 5)
+
+**Important:** The access token must be obtained by a user who is an admin of the Haidrun company page. The token will only have permissions for pages the authorizing user administers.
 
 ## Step 6: Get Company Organization ID
 
