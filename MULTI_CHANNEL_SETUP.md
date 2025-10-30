@@ -398,15 +398,142 @@ Expected response:
 
 **👤 Who performs these steps:** A team member with **Owner** or **Admin** access to the Supabase project. You need permissions to run SQL queries and modify the database.
 
-## Step 1: Verify Database Schema
+## Step 1: Create Database Tables
+
+You need to create the required tables for the multi-channel publishing system.
+
+### Option A: Run Complete Schema File (Recommended)
 
 1. Go to https://supabase.com/dashboard
 2. Select your project
 3. Go to **SQL Editor**
-4. Run the schema from `/scripts/schema.sql` to ensure all tables exist:
-   - `content` - Stores blog posts and content
-   - `social_accounts` - Stores LinkedIn/social media credentials
-   - `social_posts` - Tracks scheduled and published social posts
+4. Click **"New Query"**
+5. Copy the entire contents of `/scripts/schema.sql` from your project
+6. Paste into the SQL editor
+7. Click **"Run"** (or press Ctrl+Enter)
+8. Wait for confirmation that all statements executed successfully
+
+### Option B: Run Schema Manually (Step by Step)
+
+If you prefer to create tables individually or the full schema fails, follow these steps:
+
+#### 1. Enable UUID Extension
+
+```sql
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+```
+
+#### 2. Create Core Content Tables
+
+```sql
+-- Content Types
+CREATE TABLE IF NOT EXISTS public.content_types (
+    id VARCHAR(255) PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    description TEXT,
+    schema JSONB NOT NULL DEFAULT '{}',
+    is_active BOOLEAN DEFAULT true,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Content Items (stores blog posts and content)
+CREATE TABLE IF NOT EXISTS public.content_items (
+    id VARCHAR(255) PRIMARY KEY,
+    content_type_id VARCHAR(255) NOT NULL REFERENCES content_types(id) ON DELETE CASCADE,
+    title VARCHAR(500) NOT NULL,
+    content JSONB NOT NULL DEFAULT '{}',
+    status VARCHAR(20) DEFAULT 'draft' CHECK (status IN ('draft', 'published', 'archived')),
+    published_at TIMESTAMP WITH TIME ZONE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    created_by UUID,
+    updated_by UUID
+);
+```
+
+#### 3. Create Social Media Tables (Required for Multi-Channel)
+
+```sql
+-- Social Accounts (stores LinkedIn/social media credentials)
+CREATE TABLE IF NOT EXISTS public.social_accounts (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    platform VARCHAR(50) NOT NULL CHECK (platform IN ('linkedin', 'facebook', 'twitter', 'instagram')),
+    account_name VARCHAR(255) NOT NULL,
+    account_id VARCHAR(255) NOT NULL,
+    access_token TEXT NOT NULL,
+    refresh_token TEXT,
+    expires_at TIMESTAMP WITH TIME ZONE,
+    is_active BOOLEAN DEFAULT true,
+    account_data JSONB DEFAULT '{}',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    UNIQUE(platform, account_id)
+);
+
+-- Social Posts (tracks scheduled and published posts)
+CREATE TABLE IF NOT EXISTS public.social_posts (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    content_id VARCHAR(255),
+    platform VARCHAR(50) NOT NULL CHECK (platform IN ('linkedin', 'facebook', 'twitter', 'instagram')),
+    account_id UUID REFERENCES social_accounts(id) ON DELETE CASCADE,
+    status VARCHAR(20) DEFAULT 'scheduled' CHECK (status IN ('scheduled', 'published', 'failed', 'cancelled')),
+    scheduled_time TIMESTAMP WITH TIME ZONE,
+    published_time TIMESTAMP WITH TIME ZONE,
+    post_data JSONB NOT NULL DEFAULT '{}',
+    platform_post_id VARCHAR(255),
+    retry_count INTEGER DEFAULT 0,
+    max_retries INTEGER DEFAULT 3,
+    error_message TEXT,
+    analytics_data JSONB DEFAULT '{}',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+```
+
+#### 4. Create Indexes for Performance
+
+```sql
+-- Content indexes
+CREATE INDEX IF NOT EXISTS idx_content_items_status ON content_items(status);
+CREATE INDEX IF NOT EXISTS idx_content_items_published_at ON content_items(published_at);
+
+-- Social media indexes
+CREATE INDEX IF NOT EXISTS idx_social_accounts_platform ON social_accounts(platform);
+CREATE INDEX IF NOT EXISTS idx_social_accounts_active ON social_accounts(is_active);
+CREATE INDEX IF NOT EXISTS idx_social_posts_platform ON social_posts(platform);
+CREATE INDEX IF NOT EXISTS idx_social_posts_status ON social_posts(status);
+CREATE INDEX IF NOT EXISTS idx_social_posts_scheduled_time ON social_posts(scheduled_time);
+```
+
+#### 5. Enable Row Level Security
+
+```sql
+-- Enable RLS
+ALTER TABLE public.content_types ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.content_items ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.social_accounts ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.social_posts ENABLE ROW LEVEL SECURITY;
+
+-- Create permissive policies (adjust as needed for your security requirements)
+CREATE POLICY "Allow full access to content_types" ON public.content_types FOR ALL USING (true);
+CREATE POLICY "Allow full access to content_items" ON public.content_items FOR ALL USING (true);
+CREATE POLICY "Allow full access to social_accounts" ON public.social_accounts FOR ALL USING (true);
+CREATE POLICY "Allow full access to social_posts" ON public.social_posts FOR ALL USING (true);
+```
+
+### Verify Tables Were Created
+
+After running the schema, verify the tables exist:
+
+1. In Supabase dashboard, go to **Table Editor**
+2. You should see these tables:
+   - ✅ `content_types`
+   - ✅ `content_items` - Stores blog posts and content
+   - ✅ `social_accounts` - Stores LinkedIn/social media credentials
+   - ✅ `social_posts` - Tracks scheduled and published social posts
+   - ✅ `content_social_mappings` (if using full schema)
+   - ✅ `media_files` (if using full schema)
 
 ## Step 2: Add LinkedIn Account to Database
 
