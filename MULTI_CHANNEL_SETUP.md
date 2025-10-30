@@ -161,6 +161,8 @@ git push origin main
 
 # Part 2: Environment Variables Configuration
 
+**👤 Who performs these steps:** A team member with **Owner** or **Member** access to the Vercel team/project. You need permissions to modify project settings and environment variables.
+
 ## Backend Environment Variables (Vercel)
 
 Go to your backend Vercel project → **Settings** → **Environment Variables** and add:
@@ -229,26 +231,35 @@ After adding, redeploy the frontend.
 
 # Part 3: LinkedIn API Setup
 
+**👤 Who performs these steps:** A LinkedIn user who is an **administrator of the Haidrun LinkedIn company page**. You must have admin/owner access to the company page to link it to the app.
+
 ## Step 1: Create LinkedIn App
 
 1. Go to https://www.linkedin.com/developers/apps
-2. Click **"Create app"**
-3. Fill in app details:
+2. **Log in** with your LinkedIn account (must be admin of Haidrun company page)
+3. Click **"Create app"**
+4. Fill in app details:
    - **App name**: "Haidrun CMS Publishing"
-   - **LinkedIn Page**: Select your Haidrun company page
+   - **LinkedIn Page**: Select your Haidrun company page (you must be admin)
    - **App logo**: Upload Haidrun logo
    - **Legal agreement**: Check the box
-4. Click **"Create app"**
+5. Click **"Create app"**
 
-## Step 2: Configure App Settings
+## Step 2: Get Client ID and Client Secret
 
-1. Go to **Settings** tab
-2. Note your **Client ID** and **Client Secret**
-3. Add these to your Vercel backend environment variables:
+1. After creating the app, you'll be automatically redirected to the app dashboard
+2. Click on the **"Auth"** tab in the left sidebar (also called "Authentication")
+3. Under **"Authentication Keys"** section, you'll see:
+   - **Client ID** (also called API Key or Consumer Key)
+   - **Primary Client Secret** (click "Show" to reveal it)
+4. **Copy both values** - you'll need them for Vercel
+5. Add these to your Vercel backend environment variables:
    ```
    LINKEDIN_CLIENT_ID=your_client_id_here
    LINKEDIN_CLIENT_SECRET=your_client_secret_here
    ```
+
+**⚠️ Security:** Keep your Client Secret confidential. Never expose it in client-side code or public repositories.
 
 ## Step 3: Request API Access
 
@@ -302,10 +313,12 @@ You need to get an access token for your Haidrun company page.
 
 # Part 4: WordPress Plugin Setup
 
+**👤 Who performs these steps:** A WordPress user with **Administrator** role on the Haidrun WordPress site (haidrun.com). You need admin permissions to install plugins and configure settings.
+
 ## Step 1: Install Plugin on Haidrun Website
 
-1. Download the plugin from: `/cms_automation/wordpress-plugin/wp-headless-cms-bridge.zip`
-2. Log in to WordPress admin at https://haidrun.com/wp-admin
+1. Download the plugin from: `/cms_automation/plugins/wordpress/cms-automation-bridge-v1.0.7.zip`
+2. **Log in** to WordPress admin at https://haidrun.com/wp-admin (as Administrator)
 3. Go to **Plugins** → **Add New** → **Upload Plugin**
 4. Choose the zip file and click **"Install Now"**
 5. Click **"Activate Plugin"**
@@ -360,6 +373,8 @@ Expected response:
 ---
 
 # Part 5: Supabase Database Configuration
+
+**👤 Who performs these steps:** A team member with **Owner** or **Admin** access to the Supabase project. You need permissions to run SQL queries and modify the database.
 
 ## Step 1: Verify Database Schema
 
