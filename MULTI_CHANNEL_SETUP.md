@@ -282,10 +282,12 @@ After adding, redeploy the frontend.
 1. Go to **Auth** tab
 2. Under **Redirect URLs**, add:
    ```
-   https://cms-automation-api.vercel.app/api/auth/linkedin/callback
-   https://localhost:5000/api/auth/linkedin/callback (for testing)
+   https://cms-automation-api.vercel.app/api/v1/linkedin/callback
+   https://localhost:5000/api/v1/linkedin/callback (for testing)
    ```
 3. Click **"Update"**
+
+**Important:** The redirect URI must match EXACTLY what your backend uses. The correct path is `/api/v1/linkedin/callback`.
 
 ## Step 5: Generate Access Token
 
