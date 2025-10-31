@@ -300,14 +300,98 @@ You need to get an access token for your Haidrun company page with the correct O
 
 ### Option A: Use LinkedIn OAuth Flow (Recommended)
 
-1. Create an OAuth endpoint in your backend (if not exists)
-2. Ensure your OAuth request includes the `w_organization_social` scope
-3. Navigate to:
-   ```
-   https://your-backend-api.vercel.app/api/auth/linkedin
-   ```
-4. Authorize the app with your Haidrun admin account
-5. Token will be stored in database
+**Prerequisites:** Your backend must be deployed and have LinkedIn OAuth endpoints. The CMS backend includes these endpoints at:
+- `GET /api/v1/linkedin/auth-url` - Generates OAuth URL
+- `POST /api/v1/linkedin/connect` - Handles OAuth callback and stores token
+
+#### Step-by-Step OAuth Process:
+
+**Step 1: Get the LinkedIn Authorization URL**
+
+Make a GET request to your backend to generate the OAuth URL:
+
+```bash
+curl "https://your-backend-api.vercel.app/api/v1/linkedin/auth-url?redirectUri=https://your-backend-api.vercel.app/api/v1/linkedin/callback"
+```
+
+Response will contain:
+```json
+{
+  "success": true,
+  "data": {
+    "authUrl": "https://www.linkedin.com/oauth/v2/authorization?response_type=code&client_id=..."
+  }
+}
+```
+
+**Step 2: Authorize with LinkedIn**
+
+1. Copy the `authUrl` from the response
+2. **Open it in your browser** (or share with Haidrun company page admin)
+3. **Log in with the LinkedIn account** that is an admin of Haidrun company page
+4. LinkedIn will show permission request for your app
+5. Review the requested permissions (should include `w_organization_social`)
+6. Click **"Allow"** to authorize
+
+**Step 3: Handle the OAuth Callback**
+
+After authorization, LinkedIn redirects to your callback URL with an authorization code:
+```
+https://your-backend-api.vercel.app/api/v1/linkedin/callback?code=AQT...&state=...
+```
+
+**Step 4: Exchange Code for Access Token**
+
+Your backend needs to exchange this code for an access token. Make a POST request:
+
+```bash
+curl -X POST "https://your-backend-api.vercel.app/api/v1/linkedin/connect" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "code": "AQT...",
+    "redirectUri": "https://your-backend-api.vercel.app/api/v1/linkedin/callback"
+  }'
+```
+
+**Step 5: Token Automatically Stored**
+
+If successful, the backend will:
+- Exchange the code for an access token
+- Get the user profile and organizations they admin
+- Store the token in Supabase `social_accounts` table
+- Return success with profile and organization info
+
+Response:
+```json
+{
+  "success": true,
+  "data": {
+    "access_token": "...",
+    "expires_in": 5184000,
+    "profile": {
+      "id": "...",
+      "firstName": "...",
+      "lastName": "..."
+    },
+    "organizations": [...]
+  }
+}
+```
+
+**Alternative: Use the Frontend**
+
+If your frontend has LinkedIn OAuth integration:
+1. Go to your frontend settings page
+2. Click "Connect LinkedIn Account"
+3. Follow the authorization flow
+4. Token will be stored automatically
+
+**Troubleshooting OAuth Flow:**
+
+- **Error: "LINKEDIN_SERVICE_UNAVAILABLE"** → Check that `LINKEDIN_CLIENT_ID` and `LINKEDIN_CLIENT_SECRET` are set in Vercel backend environment variables
+- **Error: "Invalid redirect URI"** → Ensure the redirect URI matches exactly what you configured in LinkedIn app settings (Step 4 of Part 3)
+- **Error: "Insufficient permissions"** → Ensure you authorized with an account that is admin of Haidrun company page
+- **Token doesn't work for company posting** → Verify the `w_organization_social` scope was included and approved
 
 ### Option B: Manual Token Generation
 
