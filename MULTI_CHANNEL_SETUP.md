@@ -324,12 +324,47 @@ You need to get an access token for your Haidrun company page with the correct O
 
 ## Step 6: Get Company Organization ID
 
-1. Use LinkedIn API to get your company's organization URN:
+You need to find the numerical ID for your Haidrun company page and convert it to an organization URN.
+
+### Method 1: From Company Page URL (Easiest)
+
+1. Go to https://www.linkedin.com/company/haidrun/ (or your company page)
+2. Look at the URL in your browser's address bar
+3. The company ID is the number after `/company/`
+   - Example: `https://www.linkedin.com/company/12345678/` → Company ID is `12345678`
+4. Create the URN: `urn:li:organization:12345678`
+
+**Note:** If your URL uses a vanity name (like `/company/haidrun/` instead of a number), use Method 2 or 3.
+
+### Method 2: Using Browser Developer Tools
+
+1. Go to your Haidrun LinkedIn company page
+2. Open browser Developer Tools (F12 or right-click → Inspect)
+3. Go to **Network** tab
+4. Click the **Follow** or **Unfollow** button on the company page
+5. Look for a POST request to a URL containing `fsd_company:`
+   - Example: `...urn:li:fsd_company:12345678`
+6. The number after `fsd_company:` is your company ID
+7. Create the URN: `urn:li:organization:12345678`
+
+### Method 3: Using LinkedIn API (If You Have Access Token)
+
+1. Use the organizationalEntityAcls endpoint to get organizations you admin:
    ```bash
    curl -X GET 'https://api.linkedin.com/v2/organizationalEntityAcls?q=roleAssignee' \
      -H 'Authorization: Bearer YOUR_ACCESS_TOKEN'
    ```
-2. Note the organization ID (e.g., `urn:li:organization:12345678`)
+2. Look for your Haidrun company in the response
+3. Extract the organization URN (e.g., `urn:li:organization:12345678`)
+
+### Result Format
+
+Your final organization URN should look like:
+```
+urn:li:organization:12345678
+```
+
+This URN will be used when inserting the LinkedIn account into the Supabase database (Step 2 of Part 5).
 
 ---
 
