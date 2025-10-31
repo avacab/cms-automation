@@ -128,11 +128,11 @@ After deployment, verify the feature branch is deployed:
 
 1. **Check Backend:**
    ```bash
-   curl https://your-backend-api.vercel.app/health
+   curl https://cms-automation-api.vercel.app/health
    ```
 
 2. **Check Frontend:**
-   Open `https://your-frontend.vercel.app` in browser
+   Open `https://cms-automation-frontend.vercel.app` in browser
 
 3. **Verify Git Commit:**
    - In Vercel dashboard → Deployments → Click latest deployment
@@ -215,7 +215,7 @@ PERSONAL_WORDPRESS_WEBHOOK_SECRET=your_personal_webhook_secret
 Go to your frontend Vercel project → **Settings** → **Environment Variables** and add:
 
 ```
-VITE_API_URL=https://your-backend-api.vercel.app
+VITE_API_URL=https://cms-automation-api.vercel.app
 VITE_SUPABASE_URL=https://neezcjbguizmkbyglroe.supabase.co
 VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
 ```
@@ -282,7 +282,7 @@ After adding, redeploy the frontend.
 1. Go to **Auth** tab
 2. Under **Redirect URLs**, add:
    ```
-   https://your-backend-api.vercel.app/api/auth/linkedin/callback
+   https://cms-automation-api.vercel.app/api/auth/linkedin/callback
    https://localhost:5000/api/auth/linkedin/callback (for testing)
    ```
 3. Click **"Update"**
@@ -311,7 +311,7 @@ You need to get an access token for your Haidrun company page with the correct O
 Make a GET request to your backend to generate the OAuth URL:
 
 ```bash
-curl "https://your-backend-api.vercel.app/api/v1/linkedin/auth-url?redirectUri=https://your-backend-api.vercel.app/api/v1/linkedin/callback"
+curl "https://cms-automation-api.vercel.app/api/v1/linkedin/auth-url?redirectUri=https://cms-automation-api.vercel.app/api/v1/linkedin/callback"
 ```
 
 Response will contain:
@@ -337,7 +337,7 @@ Response will contain:
 
 After authorization, LinkedIn redirects to your callback URL with an authorization code:
 ```
-https://your-backend-api.vercel.app/api/v1/linkedin/callback?code=AQT...&state=...
+https://cms-automation-api.vercel.app/api/v1/linkedin/callback?code=AQT...&state=...
 ```
 
 **Step 4: Exchange Code for Access Token**
@@ -345,11 +345,11 @@ https://your-backend-api.vercel.app/api/v1/linkedin/callback?code=AQT...&state=.
 Your backend needs to exchange this code for an access token. Make a POST request:
 
 ```bash
-curl -X POST "https://your-backend-api.vercel.app/api/v1/linkedin/connect" \
+curl -X POST "https://cms-automation-api.vercel.app/api/v1/linkedin/connect" \
   -H "Content-Type: application/json" \
   -d '{
     "code": "AQT...",
-    "redirectUri": "https://your-backend-api.vercel.app/api/v1/linkedin/callback"
+    "redirectUri": "https://cms-automation-api.vercel.app/api/v1/linkedin/callback"
   }'
 ```
 
@@ -470,7 +470,7 @@ This URN will be used when inserting the LinkedIn account into the Supabase data
 2. Configure the following:
 
 ```
-CMS API URL: https://your-backend-api.vercel.app
+CMS API URL: https://cms-automation-api.vercel.app
 Sync Enabled: ✓ Yes
 Sync Direction: Bidirectional
 Post Types: Posts, Pages
@@ -690,7 +690,7 @@ Test that your backend is responding:
 
 ```bash
 # Replace with your actual backend URL
-curl https://your-backend-api.vercel.app/health
+curl https://cms-automation-api.vercel.app/health
 ```
 
 Expected response:
@@ -705,13 +705,13 @@ Expected response:
 
 ```bash
 # Check content publishing service status
-curl https://your-backend-api.vercel.app/api/v1/content-publishing/status
+curl https://cms-automation-api.vercel.app/api/v1/content-publishing/status
 
 # Check pending social posts
-curl https://your-backend-api.vercel.app/api/v1/content-publishing/pending
+curl https://cms-automation-api.vercel.app/api/v1/content-publishing/pending
 
 # Check orchestrator statistics
-curl https://your-backend-api.vercel.app/api/v1/content-publishing/orchestrator/stats
+curl https://cms-automation-api.vercel.app/api/v1/content-publishing/orchestrator/stats
 ```
 
 ## Step 3: Manual End-to-End Test
@@ -753,14 +753,14 @@ curl https://your-backend-api.vercel.app/api/v1/content-publishing/orchestrator/
 ## How It Works in Production
 
 ### 1. User Creates Content
-- User opens frontend at `https://your-frontend.vercel.app`
+- User opens frontend at `https://cms-automation-frontend.vercel.app`
 - Fills out content form with title, content, and publishing options
 - Selects "Haidrun" as company branding
 - Checks both "Publish to WordPress" and "Publish to LinkedIn"
 - Clicks submit
 
 ### 2. Backend Processing (Vercel)
-- Frontend sends request to backend API at `https://your-backend-api.vercel.app`
+- Frontend sends request to backend API at `https://cms-automation-api.vercel.app`
 - Backend creates content in Supabase database with status "published"
 - Backend sends webhook to WordPress at `https://haidrun.com`
 - Backend creates scheduled LinkedIn post in database
@@ -790,7 +790,7 @@ You can run automated tests to verify the entire flow.
 Edit `test-multi-channel-publishing.js` and update:
 
 ```javascript
-const API_BASE_URL = 'https://your-backend-api.vercel.app';
+const API_BASE_URL = 'https://cms-automation-api.vercel.app';
 ```
 
 ## Run Tests
@@ -869,7 +869,7 @@ This will test:
 **Solutions:**
 1. Check Vercel deployment status at https://vercel.com/dashboard
 2. Verify backend deployment is successful (green checkmark)
-3. Test backend URL directly: `curl https://your-backend-api.vercel.app/health`
+3. Test backend URL directly: `curl https://cms-automation-api.vercel.app/health`
 4. Check Vercel logs for errors
 5. Verify environment variables are set correctly
 6. Redeploy if necessary
@@ -930,7 +930,7 @@ This will test:
 1. Verify `VITE_API_URL` in frontend Vercel environment variables
 2. Check backend CORS configuration allows frontend domain
 3. Ensure both frontend and backend are using HTTPS
-4. Test backend directly: `curl https://your-backend-api.vercel.app/health`
+4. Test backend directly: `curl https://cms-automation-api.vercel.app/health`
 5. Clear browser cache and reload
 6. Redeploy frontend after fixing environment variables
 
@@ -940,27 +940,27 @@ Use these endpoints to diagnose issues:
 
 ### Check Service Status
 ```bash
-curl https://your-backend-api.vercel.app/api/v1/content-publishing/status
+curl https://cms-automation-api.vercel.app/api/v1/content-publishing/status
 ```
 
 ### Check Pending LinkedIn Posts
 ```bash
-curl https://your-backend-api.vercel.app/api/v1/content-publishing/pending
+curl https://cms-automation-api.vercel.app/api/v1/content-publishing/pending
 ```
 
 ### Check Orchestrator Statistics
 ```bash
-curl https://your-backend-api.vercel.app/api/v1/content-publishing/orchestrator/stats
+curl https://cms-automation-api.vercel.app/api/v1/content-publishing/orchestrator/stats
 ```
 
 ### Manual WordPress Trigger (if webhook failed)
 ```bash
-curl -X POST https://your-backend-api.vercel.app/api/v1/content-publishing/trigger/{contentId}
+curl -X POST https://cms-automation-api.vercel.app/api/v1/content-publishing/trigger/{contentId}
 ```
 
 ### Manual LinkedIn Processing (process pending posts immediately)
 ```bash
-curl -X POST https://your-backend-api.vercel.app/api/v1/content-publishing/orchestrator/process
+curl -X POST https://cms-automation-api.vercel.app/api/v1/content-publishing/orchestrator/process
 ```
 
 ---
