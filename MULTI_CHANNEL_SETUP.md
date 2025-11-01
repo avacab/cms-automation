@@ -263,19 +263,57 @@ After adding, redeploy the frontend.
 
 ## Step 3: Request API Access
 
-1. Go to **Products** tab in your app dashboard
-2. Click **"Request access"** or **"Add product"** for:
-   - **Share on LinkedIn** - Required for posting to LinkedIn
-   - **Sign In with LinkedIn** (if available) - For OAuth authentication
-3. If you see **"Marketing Developer Platform"** or **"Advertising API"**, you can request it for company page posting
-4. Wait for approval (usually instant for "Share on LinkedIn")
+**CRITICAL FOR COMPANY PAGE POSTING:** You must get approval for the **Marketing Developer Platform** product to obtain the `w_organization_social` scope required for posting to company pages.
 
-**Note:** The available products may vary by account. At minimum, you need "Share on LinkedIn" with the `w_organization_social` OAuth scope for company page posting.
+### Step 3A: Request Sign In with LinkedIn (Immediate - Usually Auto-Approved)
+
+1. Go to **Products** tab in your app dashboard
+2. Find **"Sign In with LinkedIn using OpenID Connect"** or **"Sign In with LinkedIn"**
+3. Click **"Request access"**
+4. Usually approved instantly
+5. This gives you basic scopes: `openid`, `profile`, `email`
+
+### Step 3B: Request Marketing Developer Platform (Required - Manual Review)
+
+**This is REQUIRED for company page posting.**
+
+1. Go to **Products** tab in your app dashboard
+2. Find **"Marketing Developer Platform"**
+   - If you don't see it, it may be listed as "Share on LinkedIn" or similar
+3. Click **"Request access"** or **"Apply"**
+4. You'll need to fill out an application form:
+   - **Use case**: "Content Management System for posting to company LinkedIn page"
+   - **Description**: "We're building a CMS to automatically publish blog content from our website to our LinkedIn company page. I am an administrator of the company page."
+   - **Company**: Select your Haidrun company page
+   - **Intended use**: "Automated content publishing to company page"
+5. Submit the application
+6. **Wait for approval** (can take 1-2 days to several weeks)
+
+**What you get after approval:**
+- ✅ `w_organization_social` - Post to company/organization pages
+- ✅ `r_organization_social` - Read organization content
+
+### Step 3C: Alternative - w_member_social (For Personal Profile Only)
+
+If you can't wait for Marketing Developer Platform approval, you can test with personal profile posting:
+
+1. The default scopes (`openid`, `profile`, `w_member_social`, `email`) allow posting to your **personal** LinkedIn profile
+2. Posts will appear on your personal profile, NOT the company page
+3. This is useful for testing the OAuth flow and system integration
+4. Once approved for Marketing Developer Platform, switch to company page posting
+
+**Available Products by Scope:**
+
+| Product | Scopes | Approval Time | Company Posting |
+|---------|--------|---------------|-----------------|
+| Sign In with LinkedIn | `openid`, `profile`, `email` | Instant | ❌ No |
+| Share on LinkedIn | `w_member_social` | Instant | ❌ No (personal only) |
+| Marketing Developer Platform | `w_organization_social`, `r_organization_social` | 1-2 days to weeks | ✅ Yes |
 
 **If you don't see these products:**
 - Ensure your LinkedIn account is an admin of the Haidrun company page
-- Some products require approval - you may need to submit an application explaining your use case
-- Contact LinkedIn Developer Support if products are missing
+- Some products require LinkedIn verification of your company
+- Contact LinkedIn Developer Support at https://www.linkedin.com/help/linkedin/ask/TSO-IDK if products are missing
 
 ## Step 4: Configure OAuth Redirect URLs
 

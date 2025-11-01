@@ -91,8 +91,17 @@ export class LinkedInService {
 
   /**
    * Generate LinkedIn OAuth URL for user authorization
+   *
+   * Default scopes:
+   * - openid: OpenID Connect authentication
+   * - profile: Basic profile information
+   * - w_member_social: Post to personal profile
+   * - email: Access email address
+   *
+   * For company page posting, you need 'w_organization_social' which requires
+   * LinkedIn Marketing Developer Platform product approval.
    */
-  generateAuthUrl(redirectUri: string, scopes: string[] = ['w_member_social', 'r_liteprofile', 'r_organization_social', 'w_organization_social']): LinkedInAuthUrl {
+  generateAuthUrl(redirectUri: string, scopes: string[] = ['openid', 'profile', 'w_member_social', 'email']): LinkedInAuthUrl {
     const state = randomBytes(16).toString('hex');
     
     const params = new URLSearchParams({
