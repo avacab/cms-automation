@@ -289,7 +289,7 @@ After adding, redeploy the frontend.
 
 **Important:** The redirect URI must match EXACTLY what your backend uses. The correct path is `/api/v1/linkedin/callback`.
 
-## Step 5: Generate Access Token
+## Step 5: Generate Access Token (Fully Automated)
 
 You need to get an access token for your Haidrun company page with the correct OAuth scopes.
 
@@ -298,25 +298,32 @@ You need to get an access token for your Haidrun company page with the correct O
 - `r_liteprofile` - For basic profile information
 - `r_organization_social` - For reading organization content (optional)
 
-**Note:** `w_member_social` is for personal profiles only, not company pages. Using the wrong scope will result in a 403 Forbidden error when trying to post.
+**Note:**
+- `w_member_social` is for personal profiles only, not company pages. Using the wrong scope will result in a 403 Forbidden error when trying to post.
+- LinkedIn's manual token generator does NOT provide `w_organization_social` scope. You must use the full OAuth flow.
 
-### Option A: Use LinkedIn OAuth Flow (Recommended)
+### Fully Automated OAuth Flow
 
-**Prerequisites:** Your backend must be deployed and have LinkedIn OAuth endpoints. The CMS backend includes these endpoints at:
-- `GET /api/v1/linkedin/auth-url` - Generates OAuth URL
-- `POST /api/v1/linkedin/connect` - Handles OAuth callback and stores token
+The backend has been configured with a complete OAuth flow that requires NO manual steps. Everything happens automatically.
+
+**Prerequisites:**
+- Your backend is deployed to Vercel with LinkedIn credentials configured
+- The CMS backend includes these endpoints:
+  - `GET /api/v1/linkedin/auth-url` - Generates OAuth URL
+  - `GET /api/v1/linkedin/callback` - Handles LinkedIn redirect automatically
+  - `POST /api/v1/linkedin/connect` - Alternative manual connection method
 
 #### Step-by-Step OAuth Process:
 
 **Step 1: Get the LinkedIn Authorization URL**
 
-Make a GET request to your backend to generate the OAuth URL:
+Make a GET request to generate the OAuth URL:
 
 ```bash
 curl "https://cms-automation-api.vercel.app/api/v1/linkedin/auth-url?redirectUri=https://cms-automation-api.vercel.app/api/v1/linkedin/callback"
 ```
 
-Response will contain:
+Response:
 ```json
 {
   "success": true,
@@ -329,56 +336,36 @@ Response will contain:
 **Step 2: Authorize with LinkedIn**
 
 1. Copy the `authUrl` from the response
-2. **Open it in your browser** (or share with Haidrun company page admin)
+2. **Open it in your browser** (must be done by someone who is admin of Haidrun company page)
 3. **Log in with the LinkedIn account** that is an admin of Haidrun company page
-4. LinkedIn will show permission request for your app
+4. LinkedIn will display permission request for your app
 5. Review the requested permissions (should include `w_organization_social`)
 6. Click **"Allow"** to authorize
 
-**Step 3: Handle the OAuth Callback**
+**Step 3: Automatic Callback Processing**
 
-After authorization, LinkedIn redirects to your callback URL with an authorization code:
+After clicking "Allow", LinkedIn redirects to:
 ```
 https://cms-automation-api.vercel.app/api/v1/linkedin/callback?code=AQT...&state=...
 ```
 
-**Step 4: Exchange Code for Access Token**
+The backend automatically:
+1. ✅ Receives the authorization code
+2. ✅ Exchanges code for access token
+3. ✅ Retrieves your LinkedIn profile
+4. ✅ Gets all organizations you admin (including Haidrun)
+5. ✅ Stores credentials in Supabase `social_accounts` table
+6. ✅ Displays success page with your profile and organization list
 
-Your backend needs to exchange this code for an access token. Make a POST request:
+**Step 4: View Success Confirmation**
 
-```bash
-curl -X POST "https://cms-automation-api.vercel.app/api/v1/linkedin/connect" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "code": "AQT...",
-    "redirectUri": "https://cms-automation-api.vercel.app/api/v1/linkedin/callback"
-  }'
-```
+You'll see an HTML success page showing:
+- ✅ "LinkedIn Authorization Successful!"
+- Your profile name and ID
+- List of organizations you have admin access to (including Haidrun)
+- Confirmation that credentials are stored
 
-**Step 5: Token Automatically Stored**
-
-If successful, the backend will:
-- Exchange the code for an access token
-- Get the user profile and organizations they admin
-- Store the token in Supabase `social_accounts` table
-- Return success with profile and organization info
-
-Response:
-```json
-{
-  "success": true,
-  "data": {
-    "access_token": "...",
-    "expires_in": 5184000,
-    "profile": {
-      "id": "...",
-      "firstName": "...",
-      "lastName": "..."
-    },
-    "organizations": [...]
-  }
-}
-```
+**That's it!** No manual code copying, no curl commands, no additional steps. The entire OAuth flow is fully automated.
 
 **Alternative: Use the Frontend**
 
@@ -391,22 +378,10 @@ If your frontend has LinkedIn OAuth integration:
 **Troubleshooting OAuth Flow:**
 
 - **Error: "LINKEDIN_SERVICE_UNAVAILABLE"** → Check that `LINKEDIN_CLIENT_ID` and `LINKEDIN_CLIENT_SECRET` are set in Vercel backend environment variables
-- **Error: "Invalid redirect URI"** → Ensure the redirect URI matches exactly what you configured in LinkedIn app settings (Step 4 of Part 3)
+- **Error: "Invalid redirect URI"** → Ensure the redirect URI `https://cms-automation-api.vercel.app/api/v1/linkedin/callback` matches exactly what you configured in LinkedIn app Auth settings (Step 4 above)
 - **Error: "Insufficient permissions"** → Ensure you authorized with an account that is admin of Haidrun company page
 - **Token doesn't work for company posting** → Verify the `w_organization_social` scope was included and approved
-
-### Option B: Manual Token Generation
-
-1. Go to https://www.linkedin.com/developers/tools/oauth/token-generator
-2. Select your app
-3. Select the required scopes:
-   - ✅ `w_organization_social` (required for company posting)
-   - ✅ `r_liteprofile`
-4. Click **"Generate Token"**
-5. Copy the access token
-6. Manually insert into Supabase (see Part 5)
-
-**Important:** The access token must be obtained by a user who is an admin of the Haidrun company page. The token will only have permissions for pages the authorizing user administers.
+- **Database error** → Check Supabase connection and verify `social_accounts` table exists
 
 ## Step 6: Get Company Organization ID
 
@@ -656,9 +631,40 @@ After running the schema, verify the tables exist:
    - ✅ `content_social_mappings` (if using full schema)
    - ✅ `media_files` (if using full schema)
 
-## Step 2: Add LinkedIn Account to Database
+## Step 2: Verify LinkedIn Account is Stored
 
-Insert the Haidrun LinkedIn account into the `social_accounts` table:
+After completing the OAuth flow in Part 3, Step 5, the LinkedIn account is automatically stored in the `social_accounts` table.
+
+Verify the account was stored correctly:
+
+```sql
+SELECT
+  id,
+  platform,
+  account_name,
+  account_id,
+  is_active,
+  account_data,
+  created_at
+FROM social_accounts
+WHERE platform = 'linkedin'
+ORDER BY created_at DESC
+LIMIT 1;
+```
+
+You should see:
+- `platform`: `linkedin`
+- `account_name`: Your LinkedIn profile name (e.g., "John Doe")
+- `account_id`: Your LinkedIn member ID
+- `is_active`: `true`
+- `account_data`: JSON object containing organizations you admin (including Haidrun)
+
+**If the OAuth flow completed successfully, you don't need to manually insert anything.** The backend's `/callback` route handles all database operations automatically.
+
+**Optional: Manual Insert (Only if OAuth Flow Failed)**
+
+If the OAuth flow failed and you need to manually insert the LinkedIn account, you can use:
+
 ```sql
 INSERT INTO social_accounts (
   platform,
@@ -669,18 +675,19 @@ INSERT INTO social_accounts (
   account_data
 ) VALUES (
   'linkedin',
-  'Haidrun',
-  'your_linkedin_company_id',
-  'YOUR_ACCESS_TOKEN_FROM_PART_3',
+  'Your Name',
+  'your_linkedin_member_id',
+  'YOUR_ACCESS_TOKEN',
   true,
-  '{"type": "organization", "organization_id": "urn:li:organization:YOUR_ORG_ID"}'
+  '{"organizations": [{"organizationId": "urn:li:organization:YOUR_ORG_ID", "role": "ADMINISTRATOR"}]}'
 );
 ```
 
 Replace:
-- `your_linkedin_company_id` - Your LinkedIn company identifier
-- `YOUR_ACCESS_TOKEN_FROM_PART_3` - The access token from Part 3, Step 5
-- `YOUR_ORG_ID` - The organization ID from Part 3, Step 6
+- `Your Name` - Your LinkedIn profile name
+- `your_linkedin_member_id` - Your LinkedIn member identifier
+- `YOUR_ACCESS_TOKEN` - The access token from Part 3
+- `YOUR_ORG_ID` - The Haidrun organization ID (numerical part only)
 
 ---
 
