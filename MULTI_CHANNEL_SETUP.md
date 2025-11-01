@@ -263,57 +263,89 @@ After adding, redeploy the frontend.
 
 ## Step 3: Request API Access
 
-**CRITICAL FOR COMPANY PAGE POSTING:** You must get approval for the **Marketing Developer Platform** product to obtain the `w_organization_social` scope required for posting to company pages.
+**CRITICAL FOR COMPANY PAGE POSTING:** You must get approval for the **Community Management API** product to obtain the `w_organization_social` scope required for posting to company pages.
 
-### Step 3A: Request Sign In with LinkedIn (Immediate - Usually Auto-Approved)
+### Step 3A: Verify Auto-Approved Products
 
-1. Go to **Products** tab in your app dashboard
-2. Find **"Sign In with LinkedIn using OpenID Connect"** or **"Sign In with LinkedIn"**
-3. Click **"Request access"**
-4. Usually approved instantly
-5. This gives you basic scopes: `openid`, `profile`, `email`
+When you create your LinkedIn app associated with a company page, these products are typically auto-approved:
 
-### Step 3B: Request Marketing Developer Platform (Required - Manual Review)
+1. **Share on LinkedIn** (Default Tier) - Provides basic posting capabilities
+2. **Sign In with LinkedIn using OpenID Connect** (Standard Tier) - Provides authentication scopes: `openid`, `profile`, `email`
+
+These give you the `w_member_social` scope which allows posting to **personal profiles only**, not company pages.
+
+### Step 3B: Apply for Community Management API (Required - Manual Review)
 
 **This is REQUIRED for company page posting.**
 
+**Prerequisites:**
+- Your LinkedIn app must be associated with your company page (done during app creation)
+- You must be an admin of the company page
+- You need a business email address for verification
+
+**Application Process:**
+
 1. Go to **Products** tab in your app dashboard
-2. Find **"Marketing Developer Platform"**
-   - If you don't see it, it may be listed as "Share on LinkedIn" or similar
-3. Click **"Request access"** or **"Apply"**
-4. You'll need to fill out an application form:
-   - **Use case**: "Content Management System for posting to company LinkedIn page"
-   - **Description**: "We're building a CMS to automatically publish blog content from our website to our LinkedIn company page. I am an administrator of the company page."
-   - **Company**: Select your Haidrun company page
-   - **Intended use**: "Automated content publishing to company page"
-5. Submit the application
-6. **Wait for approval** (can take 1-2 days to several weeks)
+2. Find **"Community Management API"** (Development Tier)
+   - Description: "Enable brands to build a presence and engage with their LinkedIn community."
+3. Click **"Request access"**
+4. **Email Verification:**
+   - Enter your business email address
+   - LinkedIn will send a 6-digit verification code
+   - Enter the code to continue
+5. **Select Use Cases** - Check the boxes that apply:
+   - ✅ **Page management**: Create and manage company posts, comments, and reactions, and monitor engagement (REQUIRED)
+   - Optional: **Page analytics**: Track post analytics and performance
+   - Do NOT select: Profile management, Employee advocacy (not relevant for company page posting)
+6. Click **Submit**
+
+**What Happens After Submission:**
+
+You'll see this confirmation message:
+```
+Thank you for submitting the Community Management API development tier access form.
+We are working to review all submissions in a timely manner.
+
+Important notes:
+- Please keep an eye out for email verification. You will receive an email from
+  Microsoft Vetting Services at your business email.
+- LinkedIn will attempt to verify the business provided in this form.
+- If necessary, we will reach out to you on your business email to request
+  additional documentation. This may result in a delay in making a decision for
+  your request.
+- We will notify you by email once the review process is complete.
+```
+
+**Review Process:**
+1. **Email Verification**: Watch for email from "Microsoft Vetting Services"
+2. **Business Verification**: LinkedIn verifies the Haidrun company
+3. **Possible Follow-up**: They may request additional documentation via email
+4. **Final Decision**: You'll be notified by email (typically 1-2 days to several weeks)
 
 **What you get after approval:**
 - ✅ `w_organization_social` - Post to company/organization pages
 - ✅ `r_organization_social` - Read organization content
+- ✅ Development Tier rate limits: 500 requests per app, 100 per member
 
-### Step 3C: Alternative - w_member_social (For Personal Profile Only)
+### Step 3C: Testing While Waiting for Approval
 
-If you can't wait for Marketing Developer Platform approval, you can test with personal profile posting:
+While waiting for Community Management API approval, you can test with personal profile posting:
 
-1. The default scopes (`openid`, `profile`, `w_member_social`, `email`) allow posting to your **personal** LinkedIn profile
+1. The current scopes (`openid`, `profile`, `w_member_social`, `email`) allow posting to your **personal** LinkedIn profile
 2. Posts will appear on your personal profile, NOT the company page
-3. This is useful for testing the OAuth flow and system integration
-4. Once approved for Marketing Developer Platform, switch to company page posting
+3. This is useful for:
+   - Testing the complete OAuth flow
+   - Verifying backend integration works
+   - Testing the frontend publishing workflow
+4. Once approved for Community Management API, update the scopes and switch to company page posting
 
-**Available Products by Scope:**
+**Available Products Summary:**
 
 | Product | Scopes | Approval Time | Company Posting |
 |---------|--------|---------------|-----------------|
-| Sign In with LinkedIn | `openid`, `profile`, `email` | Instant | ❌ No |
-| Share on LinkedIn | `w_member_social` | Instant | ❌ No (personal only) |
-| Marketing Developer Platform | `w_organization_social`, `r_organization_social` | 1-2 days to weeks | ✅ Yes |
-
-**If you don't see these products:**
-- Ensure your LinkedIn account is an admin of the Haidrun company page
-- Some products require LinkedIn verification of your company
-- Contact LinkedIn Developer Support at https://www.linkedin.com/help/linkedin/ask/TSO-IDK if products are missing
+| Share on LinkedIn | `w_member_social` | Instant (auto-approved) | ❌ No (personal only) |
+| Sign In with LinkedIn | `openid`, `profile`, `email` | Instant (auto-approved) | ❌ No |
+| Community Management API | `w_organization_social`, `r_organization_social` | 1-2 days to weeks (manual review) | ✅ Yes |
 
 ## Step 4: Configure OAuth Redirect URLs
 
