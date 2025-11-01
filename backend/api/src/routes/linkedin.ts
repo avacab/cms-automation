@@ -95,6 +95,213 @@ router.get('/auth-url', requireLinkedInService, (req, res) => {
 });
 
 /**
+ * GET /api/v1/linkedin/callback
+ * OAuth callback endpoint - handles LinkedIn redirect after authorization
+ */
+router.get('/callback', requireLinkedInService, async (req, res) => {
+  try {
+    const { code, state, error, error_description } = req.query;
+
+    // Check for OAuth errors
+    if (error) {
+      return res.send(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>LinkedIn Authorization Failed</title>
+          <style>
+            body { font-family: Arial, sans-serif; max-width: 600px; margin: 50px auto; padding: 20px; }
+            .error { background: #fee; border: 1px solid #fcc; padding: 20px; border-radius: 5px; }
+            h1 { color: #c33; }
+          </style>
+        </head>
+        <body>
+          <div class="error">
+            <h1>Authorization Failed</h1>
+            <p><strong>Error:</strong> ${error}</p>
+            <p><strong>Description:</strong> ${error_description || 'Unknown error'}</p>
+            <p>Please close this window and try again.</p>
+          </div>
+        </body>
+        </html>
+      `);
+    }
+
+    if (!code || typeof code !== 'string') {
+      return res.status(400).send(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>Invalid Request</title>
+          <style>
+            body { font-family: Arial, sans-serif; max-width: 600px; margin: 50px auto; padding: 20px; }
+            .error { background: #fee; border: 1px solid #fcc; padding: 20px; border-radius: 5px; }
+          </style>
+        </head>
+        <body>
+          <div class="error">
+            <h1>Invalid Request</h1>
+            <p>Authorization code is missing or invalid.</p>
+          </div>
+        </body>
+        </html>
+      `);
+    }
+
+    const redirectUri = `${req.protocol}://${req.get('host')}/api/v1/linkedin/callback`;
+
+    // Exchange code for access token
+    const tokenResult = await linkedInService!.exchangeCodeForToken(code, redirectUri);
+    if (!tokenResult.success || !tokenResult.data) {
+      return res.send(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>Token Exchange Failed</title>
+          <style>
+            body { font-family: Arial, sans-serif; max-width: 600px; margin: 50px auto; padding: 20px; }
+            .error { background: #fee; border: 1px solid #fcc; padding: 20px; border-radius: 5px; }
+          </style>
+        </head>
+        <body>
+          <div class="error">
+            <h1>Token Exchange Failed</h1>
+            <p>${tokenResult.error?.message || 'Failed to exchange authorization code for access token'}</p>
+          </div>
+        </body>
+        </html>
+      `);
+    }
+
+    // Set access token for subsequent requests
+    linkedInService!.setAccessToken(tokenResult.data.access_token);
+
+    // Get user profile and organizations
+    const connectionTest = await linkedInService!.testConnection();
+    if (!connectionTest.success) {
+      return res.send(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>Connection Test Failed</title>
+          <style>
+            body { font-family: Arial, sans-serif; max-width: 600px; margin: 50px auto; padding: 20px; }
+            .error { background: #fee; border: 1px solid #fcc; padding: 20px; border-radius: 5px; }
+          </style>
+        </head>
+        <body>
+          <div class="error">
+            <h1>Connection Test Failed</h1>
+            <p>${connectionTest.error?.message || 'Failed to retrieve LinkedIn profile and organizations'}</p>
+          </div>
+        </body>
+        </html>
+      `);
+    }
+
+    // Store the connection in database
+    const connectionData = {
+      platform: 'linkedin',
+      account_name: `${connectionTest.data!.profile!.firstName} ${connectionTest.data!.profile!.lastName}`,
+      account_id: connectionTest.data!.profile!.id,
+      access_token: tokenResult.data.access_token,
+      expires_at: new Date(Date.now() + (tokenResult.data.expires_in * 1000)).toISOString(),
+      is_active: true,
+      account_data: {
+        organizations: connectionTest.data!.organizations || []
+      }
+    };
+
+    const { error: dbError } = await supabase
+      .from('social_accounts')
+      .upsert(connectionData, {
+        onConflict: 'platform,account_id',
+        ignoreDuplicates: false
+      });
+
+    if (dbError) {
+      console.error('Database error storing LinkedIn connection:', dbError);
+      return res.send(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>Database Error</title>
+          <style>
+            body { font-family: Arial, sans-serif; max-width: 600px; margin: 50px auto; padding: 20px; }
+            .error { background: #fee; border: 1px solid #fcc; padding: 20px; border-radius: 5px; }
+          </style>
+        </head>
+        <body>
+          <div class="error">
+            <h1>Database Error</h1>
+            <p>Failed to store LinkedIn connection in database.</p>
+            <p>Error: ${dbError.message}</p>
+          </div>
+        </body>
+        </html>
+      `);
+    }
+
+    // Success! Display confirmation page
+    const orgsList = connectionTest.data!.organizations && connectionTest.data!.organizations.length > 0
+      ? `<ul>${connectionTest.data!.organizations.map(org => `<li>${org.name || org.id}</li>`).join('')}</ul>`
+      : '<p>No organizations found. You may only have access to post as your personal profile.</p>';
+
+    res.send(`
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>LinkedIn Connected Successfully</title>
+        <style>
+          body { font-family: Arial, sans-serif; max-width: 600px; margin: 50px auto; padding: 20px; }
+          .success { background: #efe; border: 1px solid #cfc; padding: 20px; border-radius: 5px; }
+          h1 { color: #3c3; }
+          .info { background: #f9f9f9; padding: 15px; margin: 15px 0; border-radius: 5px; }
+          code { background: #eee; padding: 2px 6px; border-radius: 3px; }
+        </style>
+      </head>
+      <body>
+        <div class="success">
+          <h1>✓ LinkedIn Connected Successfully!</h1>
+          <div class="info">
+            <p><strong>Name:</strong> ${connectionTest.data!.profile!.firstName} ${connectionTest.data!.profile!.lastName}</p>
+            <p><strong>Account ID:</strong> <code>${connectionTest.data!.profile!.id}</code></p>
+            <p><strong>Token Expires:</strong> ${new Date(Date.now() + (tokenResult.data.expires_in * 1000)).toLocaleString()}</p>
+          </div>
+          <h3>Organizations You Can Post To:</h3>
+          ${orgsList}
+          <p style="margin-top: 20px;">Your LinkedIn account has been connected and stored in the database. You can now close this window.</p>
+          <p style="color: #666; font-size: 14px;">Next step: Configure the organization ID in your Supabase social_accounts table to enable company page posting.</p>
+        </div>
+      </body>
+      </html>
+    `);
+
+  } catch (error) {
+    console.error('LinkedIn callback error:', error);
+    res.status(500).send(`
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Server Error</title>
+        <style>
+          body { font-family: Arial, sans-serif; max-width: 600px; margin: 50px auto; padding: 20px; }
+          .error { background: #fee; border: 1px solid #fcc; padding: 20px; border-radius: 5px; }
+        </style>
+      </head>
+      <body>
+        <div class="error">
+          <h1>Server Error</h1>
+          <p>An unexpected error occurred while processing the LinkedIn authorization.</p>
+          <p>${error instanceof Error ? error.message : 'Unknown error'}</p>
+        </div>
+      </body>
+      </html>
+    `);
+  }
+});
+
+/**
  * POST /api/v1/linkedin/connect
  * Connect LinkedIn account using authorization code
  */
