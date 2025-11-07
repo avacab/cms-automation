@@ -148,7 +148,8 @@ router.get('/callback', requireLinkedInService, async (req, res) => {
       `);
     }
 
-    const redirectUri = `${req.protocol}://${req.get('host')}/api/v1/linkedin/callback`;
+    // Use environment variable or construct with forced HTTPS for Vercel
+    const redirectUri = process.env.LINKEDIN_REDIRECT_URI || `https://${req.get('host')}/api/v1/linkedin/callback`;
 
     // Exchange code for access token
     const tokenResult = await linkedInService!.exchangeCodeForToken(code, redirectUri);
