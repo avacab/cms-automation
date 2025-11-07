@@ -177,39 +177,18 @@ router.get('/callback', requireLinkedInService, async (req, res) => {
     // Set access token for subsequent requests
     linkedInService!.setAccessToken(tokenResult.data.access_token);
 
-    // Get user profile and organizations
-    const connectionTest = await linkedInService!.testConnection();
-    if (!connectionTest.success) {
-      return res.send(`
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <title>Connection Test Failed</title>
-          <style>
-            body { font-family: Arial, sans-serif; max-width: 600px; margin: 50px auto; padding: 20px; }
-            .error { background: #fee; border: 1px solid #fcc; padding: 20px; border-radius: 5px; }
-          </style>
-        </head>
-        <body>
-          <div class="error">
-            <h1>Connection Test Failed</h1>
-            <p>${connectionTest.error?.message || 'Failed to retrieve LinkedIn profile and organizations'}</p>
-          </div>
-        </body>
-        </html>
-      `);
-    }
-
-    // Store the connection in database
+    // For Community Management API, we only have organization access, not personal profile
+    // Store the connection with organization-only scope
     const connectionData = {
       platform: 'linkedin',
-      account_name: `${connectionTest.data!.profile!.firstName} ${connectionTest.data!.profile!.lastName}`,
-      account_id: connectionTest.data!.profile!.id,
+      account_name: 'LinkedIn Organization Account',
+      account_id: `org_${Date.now()}`, // Temporary ID, will be updated when organization URN is set
       access_token: tokenResult.data.access_token,
       expires_at: new Date(Date.now() + (tokenResult.data.expires_in * 1000)).toISOString(),
       is_active: true,
       account_data: {
-        organizations: connectionTest.data!.organizations || []
+        scope: 'r_organization_social w_organization_social',
+        note: 'Community Management API - Organization posting only'
       }
     };
 
@@ -244,10 +223,6 @@ router.get('/callback', requireLinkedInService, async (req, res) => {
     }
 
     // Success! Display confirmation page
-    const orgsList = connectionTest.data!.organizations && connectionTest.data!.organizations.length > 0
-      ? `<ul>${connectionTest.data!.organizations.map(org => `<li>${org.name || org.id}</li>`).join('')}</ul>`
-      : '<p>No organizations found. You may only have access to post as your personal profile.</p>';
-
     res.send(`
       <!DOCTYPE html>
       <html>
@@ -259,20 +234,35 @@ router.get('/callback', requireLinkedInService, async (req, res) => {
           h1 { color: #3c3; }
           .info { background: #f9f9f9; padding: 15px; margin: 15px 0; border-radius: 5px; }
           code { background: #eee; padding: 2px 6px; border-radius: 3px; }
+          .warning { background: #fff3cd; border: 1px solid #ffc107; padding: 15px; margin: 15px 0; border-radius: 5px; }
         </style>
       </head>
       <body>
         <div class="success">
           <h1>✓ LinkedIn Connected Successfully!</h1>
           <div class="info">
-            <p><strong>Name:</strong> ${connectionTest.data!.profile!.firstName} ${connectionTest.data!.profile!.lastName}</p>
-            <p><strong>Account ID:</strong> <code>${connectionTest.data!.profile!.id}</code></p>
+            <p><strong>Access Token:</strong> Stored in database</p>
+            <p><strong>Scopes:</strong> <code>r_organization_social w_organization_social</code></p>
             <p><strong>Token Expires:</strong> ${new Date(Date.now() + (tokenResult.data.expires_in * 1000)).toLocaleString()}</p>
           </div>
-          <h3>Organizations You Can Post To:</h3>
-          ${orgsList}
-          <p style="margin-top: 20px;">Your LinkedIn account has been connected and stored in the database. You can now close this window.</p>
-          <p style="color: #666; font-size: 14px;">Next step: Configure the organization ID in your Supabase social_accounts table to enable company page posting.</p>
+          <div class="warning">
+            <h3>⚠️ Next Steps Required:</h3>
+            <ol>
+              <li>Go to your Supabase dashboard</li>
+              <li>Open the <code>social_accounts</code> table</li>
+              <li>Find the LinkedIn row (platform = 'linkedin')</li>
+              <li>Update <code>platform_user_id</code> with your Haidrun organization URN:<br>
+                  <code>urn:li:organization:YOUR_ORG_ID</code></li>
+              <li>Update <code>company_id</code> to reference your Haidrun company</li>
+            </ol>
+            <p><strong>How to find your organization ID:</strong></p>
+            <ul>
+              <li>Go to your Haidrun LinkedIn company page</li>
+              <li>Look at the URL - if it has a number like <code>/company/12345678/</code>, that's your org ID</li>
+              <li>Or check in LinkedIn Developer Portal under your app's authorized organizations</li>
+            </ul>
+          </div>
+          <p style="margin-top: 20px;">Your LinkedIn access token has been stored. Once you configure the organization URN, you'll be able to post to your Haidrun company page!</p>
         </div>
       </body>
       </html>
