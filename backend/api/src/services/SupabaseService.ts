@@ -16,6 +16,8 @@ export interface ContentItem {
   title: string;
   content: Record<string, any>;
   status: 'draft' | 'published' | 'archived';
+  slug?: string;
+  featured_image_url?: string;
   published_at?: string;
   created_at?: string;
   updated_at?: string;
