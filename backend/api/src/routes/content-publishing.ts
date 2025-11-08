@@ -27,11 +27,14 @@ const initializeServices = async () => {
     }
 
     if (!supabaseService) {
+      console.log('🔧 Creating SupabaseService...');
       supabaseService = new SupabaseService(
         process.env.SUPABASE_URL,
         process.env.SUPABASE_SERVICE_KEY
       );
-      await supabaseService.initialize();
+      console.log('🔌 Initializing SupabaseService...');
+      const initialized = await supabaseService.initialize();
+      console.log(`📊 SupabaseService initialized: ${initialized}, ready: ${supabaseService.isReady()}`);
     }
 
     if (!socialMediaOrchestrator) {
