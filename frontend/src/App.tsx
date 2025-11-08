@@ -187,10 +187,16 @@ function ContentPage() {
   const [editingContent, setEditingContent] = useState<ContentItem | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const handleCreateContent = async (contentData: Partial<ContentItem>) => {
+  const handleCreateContent = async (contentData: Partial<ContentItem>, publishingOptions?: any) => {
     setIsSubmitting(true)
     try {
-      await contentService.createContent(contentData)
+      if (publishingOptions && (publishingOptions.publishToLinkedIn || publishingOptions.publishToWordPress)) {
+        // Use multi-channel publishing endpoint
+        await contentService.createContentWithPublishing(contentData, publishingOptions)
+      } else {
+        // Use regular content creation
+        await contentService.createContent(contentData)
+      }
       setShowCreateForm(false)
       refresh() // Reload content list
     } catch (error) {
