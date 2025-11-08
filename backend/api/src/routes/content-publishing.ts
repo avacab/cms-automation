@@ -635,7 +635,7 @@ async function publishToWordPress(contentItem: any, publishingOptions: any): Pro
     content: {
       id: contentItem.id,
       title: contentItem.title,
-      content: contentItem.content,
+      content: typeof contentItem.content === 'object' ? contentItem.content.text || JSON.stringify(contentItem.content) : contentItem.content,
       slug: contentItem.slug,
       status: 'published',
       type: 'post',
