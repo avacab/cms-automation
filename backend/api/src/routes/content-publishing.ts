@@ -61,7 +61,13 @@ const initializeServices = async () => {
 initializeServices();
 
 // Middleware to check if services are initialized
-const requireServices = (req: express.Request, res: express.Response, next: express.NextFunction) => {
+const requireServices = async (req: express.Request, res: express.Response, next: express.NextFunction) => {
+  // If services aren't initialized yet, try to initialize them now
+  if (!contentPublishingService || !supabaseService) {
+    await initializeServices();
+  }
+
+  // Check again after initialization attempt
   if (!contentPublishingService || !supabaseService) {
     return res.status(503).json({
       success: false,
