@@ -510,9 +510,12 @@ router.post('/multi-channel', requireServices, async (req, res) => {
 
     // First, create the content item in our CMS
     const contentItem = await supabaseService!.createContentItem({
+      id: `content-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      content_type_id: 'blog-post',
       title: content.title,
-      content: content.content,
+      content: { text: content.content },
       slug: content.slug,
+      featured_image_url: content.featured_image_url,
       status: content.status || 'published'
     });
 
