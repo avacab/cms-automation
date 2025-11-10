@@ -280,7 +280,7 @@ export class ContentPublishingService {
     const body = this.extractTextFromContent(content);
     
     // Create WordPress post data
-    const wordpressData = {
+    const wordpressData: any = {
       title: contentItem.title,
       content: body,
       slug: contentItem.slug || this.generateSlugFromTitle(contentItem.title),
