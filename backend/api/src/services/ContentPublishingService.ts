@@ -359,24 +359,29 @@ export class ContentPublishingService {
     if (typeof content === 'string') {
       return this.stripHtml(content);
     }
-    
+
+    // Check for 'text' property first (our standard format)
+    if (content.text) {
+      return this.stripHtml(content.text);
+    }
+
     if (content.body) {
       return this.stripHtml(content.body);
     }
-    
+
     if (content.content) {
       return this.stripHtml(content.content);
     }
-    
+
     if (content.excerpt) {
       return this.stripHtml(content.excerpt);
     }
-    
+
     // Try to extract from WordPress-style content
     if (content.post_content) {
       return this.stripHtml(content.post_content);
     }
-    
+
     return '';
   }
 
