@@ -278,11 +278,14 @@ export class SocialMediaOrchestrator {
       // Set the access token for this account
       this.linkedinService.setAccessToken(account.access_token);
 
-      // Determine if posting as organization
-      const postAsOrganization = account.account_data?.type === 'organization';
-      
-      if (postAsOrganization && account.account_data?.organization_id) {
-        this.linkedinService.setOrganizationUrn(account.account_data.organization_id);
+      // Determine if posting as organization (check for organization_urn or organization_id)
+      const postAsOrganization = !!(account.account_data?.organization_urn || account.account_data?.organization_id);
+
+      if (postAsOrganization) {
+        // Use organization_urn if available, otherwise use organization_id
+        const orgIdentifier = account.account_data?.organization_urn || account.account_data?.organization_id;
+        this.linkedinService.setOrganizationUrn(orgIdentifier);
+        console.log(`🏢 Posting as organization: ${orgIdentifier}`);
       } else {
         // Get user profile to set person URN
         const profileResult = await this.linkedinService.getUserProfile();
