@@ -282,10 +282,17 @@ export class SocialMediaOrchestrator {
       const postAsOrganization = !!(account.account_data?.organization_urn || account.account_data?.organization_id);
 
       if (postAsOrganization) {
-        // Use organization_urn if available, otherwise use organization_id
-        const orgIdentifier = account.account_data?.organization_urn || account.account_data?.organization_id;
-        this.linkedinService.setOrganizationUrn(orgIdentifier);
-        console.log(`🏢 Posting as organization: ${orgIdentifier}`);
+        // Use organization_id (just the numeric ID, LinkedInService will add the urn prefix)
+        const orgId = account.account_data?.organization_id;
+        if (!orgId) {
+          const error = 'Organization ID not found in account data';
+          await this.contentPublishingService.updateSocialPostStatus(post.id, 'failed', {
+            error_message: error
+          });
+          return { success: false, error };
+        }
+        this.linkedinService.setOrganizationUrn(orgId);
+        console.log(`🏢 Posting as organization: ${orgId}`);
       } else {
         // Get user profile to set person URN
         const profileResult = await this.linkedinService.getUserProfile();
