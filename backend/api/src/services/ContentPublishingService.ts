@@ -390,7 +390,7 @@ export class ContentPublishingService {
    */
   private stripHtml(html: string): string {
     if (!html || typeof html !== 'string') return '';
-    
+
     return html
       .replace(/<[^>]*>/g, '') // Remove HTML tags
       .replace(/&nbsp;/g, ' ') // Replace &nbsp; with space
@@ -399,7 +399,7 @@ export class ContentPublishingService {
       .replace(/&gt;/g, '>') // Replace &gt; with >
       .replace(/&quot;/g, '"') // Replace &quot; with "
       .replace(/&#39;/g, "'") // Replace &#39; with '
-      .replace(/\s+/g, ' ') // Replace multiple spaces with single space
+      .replace(/[^\S\r\n]+/g, ' ') // Replace multiple spaces/tabs with single space, but preserve newlines
       .trim();
   }
 
