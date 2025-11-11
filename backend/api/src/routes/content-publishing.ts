@@ -38,10 +38,14 @@ const initializeServices = async () => {
     }
 
     if (!socialMediaOrchestrator) {
+      console.log('🔧 Creating SocialMediaOrchestrator...');
       const linkedinConfig = process.env.LINKEDIN_CLIENT_ID && process.env.LINKEDIN_CLIENT_SECRET ? {
         clientId: process.env.LINKEDIN_CLIENT_ID,
         clientSecret: process.env.LINKEDIN_CLIENT_SECRET
       } : undefined;
+
+      console.log('LinkedIn config present:', !!linkedinConfig);
+      console.log('ContentPublishingService ready:', contentPublishingService?.isReady());
 
       // Pass the already-initialized contentPublishingService to avoid double initialization
       socialMediaOrchestrator = new SocialMediaOrchestrator(
@@ -50,12 +54,16 @@ const initializeServices = async () => {
         linkedinConfig,
         contentPublishingService
       );
+      console.log('🔌 Initializing SocialMediaOrchestrator...');
       const initialized = await socialMediaOrchestrator.initialize();
+      console.log(`📊 SocialMediaOrchestrator initialized: ${initialized}`);
 
       if (initialized) {
         // Start the scheduler for automatic post processing
         socialMediaOrchestrator.startScheduler();
         console.log('🚀 SocialMediaOrchestrator scheduler started');
+      } else {
+        console.error('❌ SocialMediaOrchestrator failed to initialize');
       }
     }
   } catch (error) {
