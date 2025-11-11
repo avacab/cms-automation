@@ -69,6 +69,7 @@ initializeServices();
 const requireServices = async (req: express.Request, res: express.Response, next: express.NextFunction) => {
   // If services aren't initialized yet, try to initialize them now
   if (!contentPublishingService || !supabaseService) {
+    console.log('⚠️  Services not initialized, initializing now...');
     await initializeServices();
   }
 
