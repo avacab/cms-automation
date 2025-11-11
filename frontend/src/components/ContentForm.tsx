@@ -22,7 +22,8 @@ interface PublishingOptions {
   publishToWordPress: boolean
   publishToLinkedIn: boolean
   companyBranding: string
-  scheduleTime?: Date
+  scheduleOption?: string
+  customDateTime?: string
 }
 
 export default function ContentForm({ onSubmit, onCancel, initialData, isLoading = false }: ContentFormProps) {
@@ -39,7 +40,8 @@ export default function ContentForm({ onSubmit, onCancel, initialData, isLoading
     publishToWordPress: false,
     publishToLinkedIn: false,
     companyBranding: 'haidrun',
-    scheduleTime: undefined
+    scheduleOption: 'tomorrow_12pm',
+    customDateTime: undefined
   })
   
   // AI Assistant states
@@ -253,6 +255,48 @@ export default function ContentForm({ onSubmit, onCancel, initialData, isLoading
               </div>
             </div>
           </div>
+
+          {/* Scheduling Options (only show for LinkedIn) */}
+          {publishingOptions.publishToLinkedIn && (
+            <div>
+              <label htmlFor="scheduleOption" className="block text-sm font-medium text-gray-700 mb-1">
+                Publishing Schedule
+              </label>
+              <select
+                id="scheduleOption"
+                value={publishingOptions.scheduleOption}
+                onChange={(e) => setPublishingOptions(prev => ({ ...prev, scheduleOption: e.target.value, customDateTime: undefined }))}
+                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                disabled={isLoading}
+              >
+                <option value="immediate">Publish immediately</option>
+                <option value="tomorrow_9am">Tomorrow at 9 AM UTC</option>
+                <option value="tomorrow_12pm">Tomorrow at 12 PM UTC (recommended)</option>
+                <option value="tomorrow_5pm">Tomorrow at 5 PM UTC</option>
+                <option value="custom">Custom date/time</option>
+              </select>
+
+              {/* Custom Date/Time Picker */}
+              {publishingOptions.scheduleOption === 'custom' && (
+                <div className="mt-2">
+                  <label htmlFor="customDateTime" className="block text-sm font-medium text-gray-700 mb-1">
+                    Custom Date & Time (UTC)
+                  </label>
+                  <input
+                    type="datetime-local"
+                    id="customDateTime"
+                    value={publishingOptions.customDateTime || ''}
+                    onChange={(e) => setPublishingOptions(prev => ({ ...prev, customDateTime: e.target.value }))}
+                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                    disabled={isLoading}
+                  />
+                  <p className="mt-1 text-xs text-gray-500">
+                    Select a future date and time in UTC timezone
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Publishing Info */}
           {(publishingOptions.publishToWordPress || publishingOptions.publishToLinkedIn) && (

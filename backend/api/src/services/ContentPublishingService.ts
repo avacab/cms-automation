@@ -99,7 +99,7 @@ export class ContentPublishingService {
   /**
    * Monitor content_items for status changes and trigger social media publishing
    */
-  async handleContentPublished(contentItem: ContentItem): Promise<ContentPublishingResult[]> {
+  async handleContentPublished(contentItem: ContentItem, scheduleOption?: string, customDateTime?: string): Promise<ContentPublishingResult[]> {
     if (!this.isConnected) {
       throw new Error('ContentPublishingService not initialized');
     }
@@ -131,7 +131,7 @@ export class ContentPublishingService {
       // Process each LinkedIn account
       for (const account of linkedinAccounts) {
         try {
-          const result = await this.createLinkedInPost(contentItem, account);
+          const result = await this.createLinkedInPost(contentItem, account, scheduleOption, customDateTime);
           results.push(result);
         } catch (error) {
           console.error(`❌ Failed to create LinkedIn post for account ${account.account_name}:`, error);
@@ -165,12 +165,12 @@ export class ContentPublishingService {
   /**
    * Create a LinkedIn post from content item
    */
-  private async createLinkedInPost(contentItem: ContentItem, account: any): Promise<ContentPublishingResult> {
+  private async createLinkedInPost(contentItem: ContentItem, account: any, scheduleOption?: string, customDateTime?: string): Promise<ContentPublishingResult> {
     // Transform content to LinkedIn format
     const linkedinPostData = this.transformContentToLinkedIn(contentItem);
-    
-    // Calculate optimal posting time (12:00 PM UTC or immediate)
-    const scheduledTime = this.calculateOptimalPostTime();
+
+    // Calculate optimal posting time based on user's schedule preference
+    const scheduledTime = this.calculateOptimalPostTime(scheduleOption, customDateTime);
 
     // Create social_posts record
     const socialPostData = {
@@ -562,26 +562,46 @@ export class ContentPublishingService {
   /**
    * Calculate optimal posting time (12:00 PM UTC or next business day)
    */
-  private calculateOptimalPostTime(): Date {
+  private calculateOptimalPostTime(scheduleOption?: string, customDateTime?: string): Date {
     const now = new Date();
+
+    // Handle custom date/time
+    if (scheduleOption === 'custom' && customDateTime) {
+      return new Date(customDateTime);
+    }
+
+    // Handle immediate publishing
+    if (scheduleOption === 'immediate') {
+      return now;
+    }
+
     const optimalTime = new Date();
-    
-    // Set to 12:00 PM UTC (optimal LinkedIn engagement time)
-    optimalTime.setUTCHours(12, 0, 0, 0);
-    
-    // If it's past 12 PM UTC today, schedule for tomorrow
-    if (optimalTime <= now) {
+
+    // Handle preset times
+    if (scheduleOption === 'tomorrow_9am') {
       optimalTime.setUTCDate(optimalTime.getUTCDate() + 1);
-    }
-    
-    // Avoid weekends - move to Monday if scheduled for weekend
-    const dayOfWeek = optimalTime.getUTCDay();
-    if (dayOfWeek === 0) { // Sunday
+      optimalTime.setUTCHours(9, 0, 0, 0);
+    } else if (scheduleOption === 'tomorrow_5pm') {
       optimalTime.setUTCDate(optimalTime.getUTCDate() + 1);
-    } else if (dayOfWeek === 6) { // Saturday
-      optimalTime.setUTCDate(optimalTime.getUTCDate() + 2);
+      optimalTime.setUTCHours(17, 0, 0, 0);
+    } else {
+      // Default: tomorrow at 12:00 PM UTC (optimal LinkedIn engagement time)
+      optimalTime.setUTCHours(12, 0, 0, 0);
+
+      // If it's past 12 PM UTC today, schedule for tomorrow
+      if (optimalTime <= now) {
+        optimalTime.setUTCDate(optimalTime.getUTCDate() + 1);
+      }
+
+      // Avoid weekends - move to Monday if scheduled for weekend
+      const dayOfWeek = optimalTime.getUTCDay();
+      if (dayOfWeek === 0) { // Sunday
+        optimalTime.setUTCDate(optimalTime.getUTCDate() + 1);
+      } else if (dayOfWeek === 6) { // Saturday
+        optimalTime.setUTCDate(optimalTime.getUTCDate() + 2);
+      }
     }
-    
+
     return optimalTime;
   }
 

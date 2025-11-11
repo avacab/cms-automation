@@ -557,10 +557,15 @@ router.post('/multi-channel', requireServices, async (req, res) => {
     if (publishing_options.publishToLinkedIn) {
       try {
         console.log(`💼 Publishing to LinkedIn for company: ${publishing_options.companyBranding}`);
-        
-        const linkedinResults = await contentPublishingService!.handleContentPublished(contentItem);
+        console.log(`⏰ Schedule option: ${publishing_options.scheduleOption || 'default'}`);
+
+        const linkedinResults = await contentPublishingService!.handleContentPublished(
+          contentItem,
+          publishing_options.scheduleOption,
+          publishing_options.customDateTime
+        );
         const linkedinResult = linkedinResults[0] || { success: false, message: 'No LinkedIn accounts configured' };
-        
+
         results.publishing_results.linkedin = {
           success: linkedinResult.success,
           message: linkedinResult.message,
@@ -568,7 +573,7 @@ router.post('/multi-channel', requireServices, async (req, res) => {
           mapping_id: linkedinResult.mapping_id,
           error: linkedinResult.error?.message
         };
-        
+
         console.log(`✅ LinkedIn publishing result:`, linkedinResult);
       } catch (error) {
         console.error(`❌ LinkedIn publishing failed:`, error);
