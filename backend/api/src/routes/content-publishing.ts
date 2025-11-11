@@ -43,13 +43,15 @@ const initializeServices = async () => {
         clientSecret: process.env.LINKEDIN_CLIENT_SECRET
       } : undefined;
 
+      // Pass the already-initialized contentPublishingService to avoid double initialization
       socialMediaOrchestrator = new SocialMediaOrchestrator(
         process.env.SUPABASE_URL,
         process.env.SUPABASE_SERVICE_KEY,
-        linkedinConfig
+        linkedinConfig,
+        contentPublishingService
       );
       const initialized = await socialMediaOrchestrator.initialize();
-      
+
       if (initialized) {
         // Start the scheduler for automatic post processing
         socialMediaOrchestrator.startScheduler();

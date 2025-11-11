@@ -38,12 +38,15 @@ export class SocialMediaOrchestrator {
   private scheduledJob: any = null;
 
   constructor(
-    supabaseUrl: string, 
+    supabaseUrl: string,
     supabaseKey: string,
-    linkedinConfig?: { clientId: string; clientSecret: string }
+    linkedinConfig?: { clientId: string; clientSecret: string },
+    contentPublishingService?: ContentPublishingService
   ) {
     this.supabase = createClient(supabaseUrl, supabaseKey);
-    this.contentPublishingService = new ContentPublishingService(supabaseUrl, supabaseKey);
+
+    // Reuse existing ContentPublishingService if provided, otherwise create new one
+    this.contentPublishingService = contentPublishingService || new ContentPublishingService(supabaseUrl, supabaseKey);
 
     // Initialize LinkedIn service if config provided
     if (linkedinConfig) {
@@ -53,11 +56,13 @@ export class SocialMediaOrchestrator {
 
   async initialize(): Promise<boolean> {
     try {
-      // Initialize content publishing service
-      const contentServiceReady = await this.contentPublishingService.initialize();
-      if (!contentServiceReady) {
-        console.error('❌ Failed to initialize ContentPublishingService');
-        return false;
+      // Only initialize content publishing service if it's not already initialized
+      if (!this.contentPublishingService.isReady()) {
+        const contentServiceReady = await this.contentPublishingService.initialize();
+        if (!contentServiceReady) {
+          console.error('❌ Failed to initialize ContentPublishingService');
+          return false;
+        }
       }
 
       console.log('✅ SocialMediaOrchestrator initialized successfully');
