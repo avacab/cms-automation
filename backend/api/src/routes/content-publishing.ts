@@ -336,9 +336,41 @@ router.post('/posts/:postId/status', requireServices, async (req, res) => {
 });
 
 /**
- * POST /api/v1/content-publishing/orchestrator/process
- * Manually trigger orchestrator to process pending posts
+ * GET/POST /api/v1/content-publishing/orchestrator/process
+ * Trigger orchestrator to process pending posts
+ * GET is used by Vercel Cron, POST for manual triggers
  */
+router.get('/orchestrator/process', requireServices, async (req, res) => {
+  try {
+    if (!socialMediaOrchestrator) {
+      return res.status(503).json({
+        success: false,
+        error: {
+          code: 'ORCHESTRATOR_UNAVAILABLE',
+          message: 'Social media orchestrator is not initialized'
+        }
+      });
+    }
+
+    const result = await socialMediaOrchestrator.processPendingPosts();
+
+    res.json({
+      success: true,
+      message: 'Orchestrator processing completed',
+      data: result
+    });
+  } catch (error) {
+    console.error('Error processing pending posts:', error);
+    res.status(500).json({
+      success: false,
+      error: {
+        code: 'PROCESSING_ERROR',
+        message: error instanceof Error ? error.message : 'Unknown error occurred'
+      }
+    });
+  }
+});
+
 router.post('/orchestrator/process', requireServices, async (req, res) => {
   try {
     if (!socialMediaOrchestrator) {
