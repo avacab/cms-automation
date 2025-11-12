@@ -10,11 +10,5 @@
       "src": "/(.*)",
       "dest": "src/index.ts"
     }
-  ],
-  "crons": [
-    {
-      "path": "/api/v1/content-publishing/orchestrator/process",
-      "schedule": "*/5 * * * *"
-    }
   ]
 }

@@ -2,6 +2,12 @@
 
 This guide will help you set up automated LinkedIn post publishing using Supabase pg_cron.
 
+## Why Supabase pg_cron Instead of Vercel Cron?
+
+**Vercel Cron Limitation**: Hobby/free tier accounts only support daily cron jobs. Running every 5 minutes requires a Pro plan ($20/month).
+
+**Supabase pg_cron**: Free on all tiers and supports any schedule including every 5 minutes.
+
 ## Overview
 
 Once configured, posts will automatically publish at their scheduled time without manual intervention. The system checks every 5 minutes for posts that are ready to publish.
