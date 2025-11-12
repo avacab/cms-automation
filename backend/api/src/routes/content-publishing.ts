@@ -19,11 +19,18 @@ const initializeServices = async () => {
     }
 
     if (!contentPublishingService) {
+      console.log('🔧 Creating ContentPublishingService...');
       contentPublishingService = new ContentPublishingService(
         process.env.SUPABASE_URL,
         process.env.SUPABASE_SERVICE_KEY
       );
-      await contentPublishingService.initialize();
+      console.log('🔌 Initializing ContentPublishingService...');
+      const initialized = await contentPublishingService.initialize();
+      console.log(`📊 ContentPublishingService initialized: ${initialized}, ready: ${contentPublishingService.isReady()}`);
+
+      if (!initialized) {
+        console.error('❌ ContentPublishingService failed to initialize - check Supabase connection');
+      }
     }
 
     if (!supabaseService) {
