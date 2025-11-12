@@ -343,6 +343,58 @@ router.post('/posts/:postId/status', requireServices, async (req, res) => {
 });
 
 /**
+ * GET /api/v1/content-publishing/debug/init
+ * Debug endpoint to check service initialization
+ */
+router.get('/debug/init', async (req, res) => {
+  try {
+    const hasSupabaseUrl = !!process.env.SUPABASE_URL;
+    const hasSupabaseKey = !!process.env.SUPABASE_SERVICE_KEY;
+
+    // Try to create and initialize a fresh service
+    if (hasSupabaseUrl && hasSupabaseKey) {
+      const testService = new ContentPublishingService(
+        process.env.SUPABASE_URL!,
+        process.env.SUPABASE_SERVICE_KEY!
+      );
+      const initialized = await testService.initialize();
+      const ready = testService.isReady();
+
+      res.json({
+        environment: {
+          SUPABASE_URL: hasSupabaseUrl,
+          SUPABASE_SERVICE_KEY: hasSupabaseKey
+        },
+        test_service: {
+          initialized,
+          ready
+        },
+        existing_services: {
+          contentPublishingService: !!contentPublishingService,
+          contentPublishingServiceReady: contentPublishingService?.isReady() || false,
+          supabaseService: !!supabaseService,
+          supabaseServiceReady: supabaseService?.isReady() || false,
+          orchestrator: !!socialMediaOrchestrator,
+          orchestratorHealthy: socialMediaOrchestrator?.isHealthy() || false
+        }
+      });
+    } else {
+      res.json({
+        error: 'Missing Supabase credentials',
+        environment: {
+          SUPABASE_URL: hasSupabaseUrl,
+          SUPABASE_SERVICE_KEY: hasSupabaseKey
+        }
+      });
+    }
+  } catch (error) {
+    res.status(500).json({
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
+/**
  * GET/POST /api/v1/content-publishing/orchestrator/process
  * Trigger orchestrator to process pending posts
  * GET is used by Vercel Cron, POST for manual triggers
