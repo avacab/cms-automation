@@ -8,6 +8,7 @@ import {
   ArrowTopRightOnSquareIcon,
   ClipboardDocumentIcon
 } from '@heroicons/react/24/outline';
+import { FieldTooltip } from './Tooltip';
 
 interface GenerationOptions {
   type: 'complete' | 'continue' | 'rewrite' | 'improve' | 'adapt';
@@ -231,8 +232,14 @@ const AIContentGenerator: React.FC<AIContentGeneratorProps> = ({
       {/* Prompt Input (for complete generation) */}
       {generationType === 'complete' && (
         <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center">
             Content Prompt
+            <FieldTooltip
+              title="Content Prompt"
+              description="Describe what content you want the AI to generate. Be specific about the topic, purpose, and key points."
+              example="Write a blog post about sustainable energy solutions for small businesses, focusing on solar panels and cost savings"
+              note="More detailed prompts produce better results. Include context, target audience, and desired outcome."
+            />
           </label>
           <textarea
             value={prompt}
@@ -247,8 +254,19 @@ const AIContentGenerator: React.FC<AIContentGeneratorProps> = ({
       {/* Template Selection */}
       {availableTemplates.length > 0 && (
         <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center">
             Content Template (Optional)
+            <FieldTooltip
+              title="Content Template"
+              description="Pre-defined structure for your content. Templates provide a consistent format and save time."
+              choices={[
+                'Blog Post - Standard blog article structure',
+                'Product Description - E-commerce product format',
+                'No template - Generate freeform content'
+              ]}
+              example="Blog Post"
+              note="Templates are optional but help maintain consistent formatting across your content."
+            />
           </label>
           <select
             value={selectedTemplate}
@@ -268,8 +286,19 @@ const AIContentGenerator: React.FC<AIContentGeneratorProps> = ({
       {/* Brand Voice Selection */}
       {availableBrandVoices.length > 0 && (
         <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center">
             Brand Voice (Optional)
+            <FieldTooltip
+              title="Brand Voice"
+              description="Consistent tone and style that reflects your brand personality. The AI will match this voice in generated content."
+              choices={[
+                'Professional Voice - Authoritative and formal',
+                'Friendly Voice - Conversational and approachable',
+                'No brand voice - Generate in neutral tone'
+              ]}
+              example="Professional Voice"
+              note="Brand voice ensures all content maintains consistent personality and matches your company's communication style."
+            />
           </label>
           <select
             value={selectedBrandVoice}
