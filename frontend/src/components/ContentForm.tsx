@@ -3,6 +3,7 @@ import { ContentItem } from '../services/api'
 import AIWritingAssistant from './AIWritingAssistant'
 import AIContentGenerator from './AIContentGenerator'
 import ContentAdaptationPanel from './ContentAdaptationPanel'
+import { FieldTooltip } from './Tooltip'
 import {
   SparklesIcon,
   DocumentTextIcon,
@@ -197,8 +198,18 @@ export default function ContentForm({ onSubmit, onCancel, initialData, isLoading
         <div className="space-y-4">
           {/* Company Branding Selection */}
           <div>
-            <label htmlFor="companyBranding" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="companyBranding" className="block text-sm font-medium text-gray-700 mb-1 flex items-center">
               Company Brand
+              <FieldTooltip
+                title="Company Brand"
+                description="Select which brand identity to use for this content."
+                choices={[
+                  'Haidrun - Official company brand',
+                  'Personal - Personal brand'
+                ]}
+                example="Haidrun"
+                note="This affects branding, tone, and which social accounts are used for publishing."
+              />
             </label>
             <select
               id="companyBranding"
@@ -214,8 +225,17 @@ export default function ContentForm({ onSubmit, onCancel, initialData, isLoading
 
           {/* Publishing Destinations */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center">
               Publish To
+              <FieldTooltip
+                title="Publish To"
+                description="Select destination platforms for your content."
+                choices={[
+                  'WordPress - Haidrun website blog',
+                  'LinkedIn - Company page post'
+                ]}
+                note="You can publish to one or both platforms. Each gets optimized formatting."
+              />
             </label>
             <div className="space-y-2">
               {/* WordPress Publishing */}
@@ -259,8 +279,19 @@ export default function ContentForm({ onSubmit, onCancel, initialData, isLoading
           {/* Scheduling Options (only show for LinkedIn) */}
           {publishingOptions.publishToLinkedIn && (
             <div>
-              <label htmlFor="scheduleOption" className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="scheduleOption" className="block text-sm font-medium text-gray-700 mb-1 flex items-center">
                 Publishing Schedule
+                <FieldTooltip
+                  title="Publishing Schedule"
+                  description="When to publish your LinkedIn post."
+                  choices={[
+                    'Immediate - Publish right away',
+                    'Tomorrow 9 AM/12 PM/5 PM UTC - Scheduled times',
+                    'Custom - Pick your own date/time'
+                  ]}
+                  example="Tomorrow at 12 PM UTC"
+                  note="Recommended: 12 PM UTC for optimal engagement"
+                />
               </label>
               <select
                 id="scheduleOption"
@@ -279,8 +310,14 @@ export default function ContentForm({ onSubmit, onCancel, initialData, isLoading
               {/* Custom Date/Time Picker */}
               {publishingOptions.scheduleOption === 'custom' && (
                 <div className="mt-2">
-                  <label htmlFor="customDateTime" className="block text-sm font-medium text-gray-700 mb-1">
+                  <label htmlFor="customDateTime" className="block text-sm font-medium text-gray-700 mb-1 flex items-center">
                     Custom Date & Time (UTC)
+                    <FieldTooltip
+                      title="Custom Date & Time"
+                      description="Choose a specific future date and time for publishing."
+                      example="2025-11-15 14:00"
+                      note="Format: YYYY-MM-DD HH:MM in UTC timezone (may differ from your local time)."
+                    />
                   </label>
                   <input
                     type="datetime-local"
@@ -333,8 +370,14 @@ export default function ContentForm({ onSubmit, onCancel, initialData, isLoading
       <form onSubmit={handleSubmit} className="px-6 py-4 space-y-4">
         {/* Title Field */}
         <div>
-          <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-1 flex items-center">
             Title *
+            <FieldTooltip
+              title="Title"
+              description="The main heading of your content. This appears at the top of posts and in search results."
+              example="The Future of AI in Business"
+              note="Keep it clear, descriptive, and under 60 characters for best SEO."
+            />
           </label>
           <input
             type="text"
@@ -354,8 +397,14 @@ export default function ContentForm({ onSubmit, onCancel, initialData, isLoading
 
         {/* Slug Field */}
         <div>
-          <label htmlFor="slug" className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="slug" className="block text-sm font-medium text-gray-700 mb-1 flex items-center">
             Slug
+            <FieldTooltip
+              title="Slug"
+              description="The URL-friendly version of your title. Auto-generated if left empty."
+              example="future-of-ai-in-business"
+              note="Format: lowercase, hyphens, no special characters. This creates the URL: /future-of-ai-in-business"
+            />
           </label>
           <div className="flex">
             <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500 sm:text-sm">
@@ -378,8 +427,17 @@ export default function ContentForm({ onSubmit, onCancel, initialData, isLoading
 
         {/* Status Field */}
         <div>
-          <label htmlFor="status" className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="status" className="block text-sm font-medium text-gray-700 mb-1 flex items-center">
             Status
+            <FieldTooltip
+              title="Status"
+              description="Content visibility state."
+              choices={[
+                'Draft - Saved but not visible',
+                'Published - Live and visible'
+              ]}
+              note="Use 'Draft' while working, 'Published' when ready to go live."
+            />
           </label>
           <select
             id="status"
@@ -395,8 +453,14 @@ export default function ContentForm({ onSubmit, onCancel, initialData, isLoading
 
         {/* Content Field with AI Assistant */}
         <div>
-          <label htmlFor="content" className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="content" className="block text-sm font-medium text-gray-700 mb-1 flex items-center">
             Content *
+            <FieldTooltip
+              title="Content"
+              description="The main body of your post. Supports markdown formatting."
+              example="Use paragraphs, bullet points, and headings to structure your content."
+              note="You can also use AI tools above to generate or improve content."
+            />
           </label>
           <div className="relative">
             <textarea
