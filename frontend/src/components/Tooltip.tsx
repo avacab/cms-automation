@@ -31,7 +31,7 @@ export default function Tooltip({ content, position = 'top' }: TooltipProps) {
         onMouseLeave={() => setIsVisible(false)}
         onFocus={() => setIsVisible(true)}
         onBlur={() => setIsVisible(false)}
-        className="inline-flex items-center justify-center text-gray-400 hover:text-gray-600 focus:outline-none transition-colors"
+        className="inline-flex items-center justify-center text-gray-400 hover:text-gray-600 focus:outline-none transition-colors p-0 border-0 bg-transparent"
         aria-label="More information"
       >
         <QuestionMarkCircleIcon className="w-4 h-4" />
